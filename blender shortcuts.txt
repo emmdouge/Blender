@@ -1,0 +1,292 @@
+Enable Pie Menu Add-on In User preferences
+Install Xps (xnalara) importer thing 
+
+
+Shift+F2 for a Logic editor
+
+Shift+F3 for a Node editor
+
+Shift+F4 for a Python console
+
+Shift+F5 for a 3D view
+
+Shift+F6 for a Graph editor
+
+Shift+F7 for a Properties editor
+
+Shift+F8 for a NLA editor
+
+Shift+F9 for an Outliner
+
+Shift+F10 for a UV/image editor
+
+Shift+F11 for a Text editor
+
+Shift+F12 for a Dope sheet
+
+{
+
+	Tab to switch between edit mode and object(?) mode
+
+	Ctrl + Tab - Pose MOde
+
+
+
+	RMB select
+
+
+
+	a to select/deselect all
+
+}
+
+
+
+
+ctrl + space - transformation manipulation
+Hold shift while clicking on them to toggle multiple 
+
+Shift+S 
+	Cursor to Selected - Snap the 3D cursor to the object's origin
+	Selection to Cursor - Move object to cursor
+Ctrl+Shift+Alt+C - set origin to 3d cursor
+
+Ctrl+ , - set pivot point to median of selected objects
+Ctrl+ . - set pivot point to selected objects individual origins
+
+Alt+G - reset movement relative to origin
+Alt+R - reset rotation
+Alt+S - reset scale (must have scale applied to it, Ctrl+A (Sets current size of object as default size))  
+
+Alt+Z - set viewport shading to texture (for importing videos)
+Shift+Z - set viewport shading to rendered
+
+If you transform object in edit mode, the origin point will not move
+
+
+ctrl + tab = select edge mode
+
+
+
+shift + RMB to select edge (a blue one)
+
+
+
+shift + g to select by similar sharpness
+
+
+
+shift + d to duplicate and move away from mesh
+
+
+
+p seperate by selection (make sure object is selected)
+
+
+
+ctrl + e for edge loops
+
+
+
+f/j to create faces between vertices
+
+
+
+ctrl + i to select large portions of crap
+
+
+
+ctrl +  LMB for lasso select
+
+shift + space toggle fullscreen
+
+T toggle toolshelf
+
+N toggle properties
+
+
+F5 flip panels
+
+One G Pencil object in collections - multiple layers
+
+SHIFT+F9 - Outliner
+
+RMB - select/cancel
+LMB - confirm
+Alt + LMB - look around (Emulate 3 Button mouse must be checked in settings)
+. Numpad to focus
+0 Numpad - camera view
+1 Numpad - front view 
+7 Numpad - top view
+5 Numpad - set view to orthographic (shows grid if at a face e.g. left, right, top, etc)
+SHIFT+Numpad 6 to your right; to your left SHIFT+Numpad 4
+
+SHIFT+F walk and fly mode (to move camera press 0 to switch to camera view first)
+
+SHIFT+D duplicate
+
+use Ctrl + Alt + Numpad 0 - To make your active camera match up with the viewport
+Home - fit camera to viewport (unlocked camera, leaves camera when you move | locked camera, moves camera when you move 
+Shift+B - Draw a box zoom
+Alt+F - Center to Mouse position (will not work if viewport is locked to object or in camera perspec.tive
+Ctrl + Numpad Arrows - Panning
+Ctrl + Up Arrow - Enlarge whatever 3d view your mouse is hovering on
+Ctrl + Down Arrow - toggle  on enlarged view
+Ctrl + Left/Right Arrow - Switch between workspaces
+Numpad / - Isolate object
+Shift + Numpad . - Lock Viewport to Object
+Alt+ Numpad . - Unlock Viewport to Object or N -> View -> Click X next to Lock to Object (prob grayed out)
+	If nothing appears different in Camera perspective it is because the camera is moving with the object 
+	(if you pressed A to select all instead of the specific object)
+Alt+Space - change orientation to local, etc
+Make Child unclickable by unchecking mouse icon in outliner
+See bg in Rendered Viewport Shading, Set to Cycles Render, Properties Camera Icon, Film, Check Transparent box
+See bg in Rendered Viewport Shading, Set to Blender Render, Properties Camera Icon, Shading, Change Alpha Mode to Transparent
+When Adding movieclip, make to set Viewport Shading to Solid and Color to Linear Aces
+Properties -> Lamp -> Uncheck specular and diffuse OR hide lamp, then Properties -> World -> Change Ambient Color to White
+Click Character -> N -> Display -> Check Only Rendered to Hide Bones and transform manipulators
+Set Keying Set to Whole Character 
+Ctrl+U - save your current settings and setup as the default startup view
+File -> Load Factory Settings to reset startup files, etc
+Video Editing Workspace, Add -> Scene, Add -> Image, Click Image, Edit Strip, Set Blend to Alpha Under
+In Video Editting Workspace Preview Screen, N -> Change to Rendered for Freestyle Lines in Video Editting workspace
+Add Grease Pencil Layer in Preview Screen and Enable Editting
+In Video Editting workspace, 
+	E - extend strip
+	Shift+S - snap strips
+	K - cut strips
+	Y - cut image sequences
+	Ctrl+G - make metastrip, Tab - expand metastrip, when re-adding scenes set start frame to 0
+Select Strip - Add -> Effect Strip -> Transform
+	Right Click Position and Scale and Select Insert Keyframe
+	Go to Graph Editor -> N -> Add Noise Modifier 
+	You can restrict frame range to decide where it starts
+Use I to insert keyframe in selected channel, then press G to grab it and move it
+Shift+H to "Hide Unselected Curves".
+Alt+H to "Reveal Unselected Curves"
+In Properties -> Render -> Post Processing -> Uncheck Compositing and Check Sequencer for Final Render
+Hold D - draw stroke
+Hold D+RMB - erase 
+Ctrl+D and press LMB LMB to draw a line
+Ctrl+D and press RMB RMB to draw a poly line
+
+Alt+Scroll - scrub timeline next/prev keyframe
+If bg goes black, you must return to camera perspective (Numpad 0)
+1. Make Animation
+2. Use GP to draw on Solid Viewport Shading in 3dView -> Hide 3d Objects -> OpenGL Render -> Import into VSE
+OR Normal Render with Compositing Checked in 3d View -> Import into Krita -> Animate -> Render with Composite Hidden -> Import into VSE 
+3. Make Scene a MetaMask - Ctrl+G
+Make BG cuts, instead of zoom, keep resolution the same between bgs
+4. DRAW GREASE PENCIL ON METAMASK IN VSE
+5. Mute Strips INSIDE metastrips, Mute Strip - H, Un-Mute Strips: Alt + H, OpenGL Render Animation
+You don't need to hide the scene since Freestyle will not render in OpenGL
+Add Movie on Top of Everything (should be highest channel number) Set Blend to Alpha Under
+
+
+To enable GPU rendering, go to File>User Preferences>System and under Compute Device, check CUDA.
+
+blue - shadow
+red - highlights
+green - higher lights
+
+ctrl + fill tool - radial fill
+alt + fill tool - boundary lines
+
+Shift + alt + scroll - rotate the viewpoint vertically around the center of the view.
+
+Shift + A - add 
+
+R - rotate
+G - translate
+S - scale
+	z - z axis
+	x - x axis
+	y - y axis
+	axis will be highlighted
+
+Shift+Axis - exclude axis
+Press Axis again to move along the objects local x axis
+
+Base Color
+Sketch
+Shadows
+
+W Key - Specials
+	Subdivide path to get more points (only 4)
+
+Crtl + P - set camera to
+	Follow Path
+	Use outliner to select camera THEN path using shift
+
+
+Animate on timeline in camera view (do not start on frame zero)
+Just start drawing on new keyframe, it will clear the canvas for you
+
+USE OPENGL Render Animation
+
+Shift + ctrl + down - jump to first frame
+
+Bind Camera to Markers Ctrl-B
+This is used switch cameras during animation. It binds the active camera to the selected markers. First select a camera. Then select the marker(s). Then use the tool.
+
+Graph Editor -> Key -> Interpolation Mode -> Constant
+
+I - create new keyframe
+
+In dope sheet, right click select frame
+g - grab and move them
+
+Moho
+Set Interpolation to Step, 1 for frame by frame animation before starting
+Window -> Poser Parameters
+Uncheck enable drawing tools only on frame 0 at Edit -> Preferences -> Tools
+Tilda - expand workspace
+M - grab move (X) and (Y)
+Alt in Move Mode - Move Forward/Back (Z) Move mouse Up and Down
+Alt in Pose Mode - Move/Rotate entire body though the text indicating the selected body part may not be updated
+Click on Red Frame to Rotate on (X)
+Change Framerate under File -> Project Settings
+Ctrl+R - render frame
+Ctrl+Alt+Arrows Keys - Next/Prev keyframe
+Set Scale X,Y,Z to 0 for empty keyframe
+Scale stays the same until changed again
+
+Poser Pro 11
+Ctrl+E - restore object
+Ctrl+Shift+F - Restore Figure (reset?)
+Ctrl+Shift+H - Restore Camera(reset?)
+Ctrl+Alt+1 - Sillouhette
+Click on Ground, go to Object -> Lock Object
+Uncheck Animating Box in Main Camera properties to disable keyframing camera
+Numpad 2 - Select Actor Body
+Numpad 3 - Main Camera
+D  - toggle multi cameras (something must be selected/clicked)
+Y - Select Tool
+M - Direct Manipulation Tool 
+Ctrl+Shift+E - Hierarchy Editor
+Ctrl+Shift+V - Animation Pallette
+Copy/Paste Frames in Timeline for empty keyframes
+Display -> Background Color -> White
+Figure -> Use Inverse Kinematics -> uncheck them
+Move Hip to move entire body
+Edit Shortcuts - look for edit -> next Selection (use to go into different "groups of joints")
+Use Up/Down Arrow for going through each "group"
+Ctrl+B - toggle bg picture
+Ctrl+J  - Animation -> Make Movie
+Ctrl+G - Toggle Ground Visibility
+
+Krita
+Tools -> Scripting -> Ten Brushes -> Drag n Drop Shapes_Fill brush to desired shortcut
+Layer - Transform
+Image - trim to current layer
+Image - trim to image size (will trim layer to selection)
+Filter -> Other -> Wave
+
+Ctrl+T - transform
+Ctrl+I - invert
+Ctrl+R - rectangular selection
+Ctrl+Shift+A - deselect
+Ctrl+Drag Frame - copy frame
+
+Right Click layer add colorize mask fill with grey
+Add Filter Mask Colors -> Color to Alpha

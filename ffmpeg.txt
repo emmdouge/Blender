@@ -1,0 +1,16 @@
+how to install ffmpeg
+download and extract
+go inside bin
+run:
+setx /M PATH %cd% 
+
+
+turn vid to 8 or 12fps with same length 
+(24/12 = 2s, 24/8 = 3s, makes video animated on 3s, 
+24/6 = 4s, 24/4 = 6s, 24/2 = 12s)
+ffmpeg -i video.mp4 -r 4 -y output.mp4
+
+have to make the dir (drufist0 folder) bc it will not create folder path
+t is seconds? afaik
+turn vid to frames at 24fps
+ffmpeg -i output.mp4 -vf fps=24,select='between(t,37,45)',scale=1280:720 -vsync 0 ./drufist0/out%d.png

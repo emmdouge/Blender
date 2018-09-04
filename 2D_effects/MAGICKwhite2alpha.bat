@@ -1,0 +1,1 @@
+FOR %%G IN (*.png) DO magick %%G -transparent "#FF00FF" .\%%G

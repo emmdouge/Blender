@@ -1,0 +1,1 @@
+magick %1 -transparent "#FF00FF" %1
