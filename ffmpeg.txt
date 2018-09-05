@@ -15,4 +15,4 @@ t is seconds? afaik
 turn vid to frames at 24fps
 ffmpeg -i output.mp4 -vf fps=24,select='between(t,37,45)',scale=1280:720 -vsync 0 ./drufist0/out%d.png
 
-Created scripts with ImageMagick 7.0.8-11 and ffmpeg-20180619-a990184-win64
+Created scripts with ImageMagick 7.0.8-11(uncheck install ffmpeg) and ffmpeg-20180619-a990184-win64
