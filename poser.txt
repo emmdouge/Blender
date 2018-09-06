@@ -1,0 +1,24 @@
+
+Poser Pro 11
+Ctrl+E - restore object
+Ctrl+Shift+F - Restore Figure (reset?)
+Ctrl+Shift+H - Restore Camera(reset?)
+Ctrl+Alt+1 - Sillouhette
+Click on Ground, go to Object -> Lock Object
+Uncheck Animating Box in Main Camera properties to disable keyframing camera
+Numpad 2 - Select Actor Body
+Numpad 3 - Main Camera
+D  - toggle multi cameras (something must be selected/clicked)
+Y - Select Tool
+M - Direct Manipulation Tool 
+Ctrl+Shift+E - Hierarchy Editor
+Ctrl+Shift+V - Animation Pallette
+Copy/Paste Frames in Timeline for empty keyframes
+Display -> Background Color -> White
+Figure -> Use Inverse Kinematics -> uncheck them
+Move Hip to move entire body
+Edit Shortcuts - look for edit -> next Selection (use to go into different "groups of joints")
+Use Up/Down Arrow for going through each "group"
+Ctrl+B - toggle bg picture
+Ctrl+J  - Animation -> Make Movie
+Ctrl+G - Toggle Ground Visibility

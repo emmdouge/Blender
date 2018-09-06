@@ -1,6 +1,6 @@
 Enable Pie Menu Add-on In User preferences
 Install Xps (xnalara) importer thing 
-
+Enable AnimAll (animate vertices)
 
 Shift+F2 for a Logic editor
 
@@ -143,7 +143,8 @@ Make Child unclickable by unchecking mouse icon in outliner
 See bg in Rendered Viewport Shading, Set to Cycles Render, Properties Camera Icon, Film, Check Transparent box
 See bg in Rendered Viewport Shading, Set to Blender Render, Properties Camera Icon, Shading, Change Alpha Mode to Transparent
 When Adding movieclip, make to set Viewport Shading to Solid and Color to Linear Aces
-Properties -> Lamp -> Uncheck specular and diffuse OR hide lamp, then Properties -> World -> Change Ambient Color to White
+Properties -> Lamp -> Change to Point Light, Uncheck specular and diffuse OR hide lamp, then Properties -> World -> Change Ambient Color to White
+	Click Mesh -> Material Icon in Outliner -> Check Shadeless
 Click Character -> N -> Display -> Check Only Rendered to Hide Bones and transform manipulators
 Set Keying Set to Whole Character 
 Ctrl+U - save your current settings and setup as the default startup view
@@ -223,6 +224,8 @@ Animate on timeline in camera view (do not start on frame zero)
 Just start drawing on new keyframe, it will clear the canvas for you
 
 USE OPENGL Render Animation
+FFmpeg video -> RGBA (will crash otherwise) -> Quicktime -> QT rle (alpha channel)
+Black bg in vegas, right click video, click on Media Tab, set alpha channel to premultiplied 
 
 Shift + ctrl + down - jump to first frame
 
@@ -236,44 +239,6 @@ I - create new keyframe
 In dope sheet, right click select frame
 g - grab and move them
 
-Moho
-Set Interpolation to Step, 1 for frame by frame animation before starting
-Window -> Poser Parameters
-Uncheck enable drawing tools only on frame 0 at Edit -> Preferences -> Tools
-Tilda - expand workspace
-M - grab move (X) and (Y)
-Alt in Move Mode - Move Forward/Back (Z) Move mouse Up and Down
-Alt in Pose Mode - Move/Rotate entire body though the text indicating the selected body part may not be updated
-Click on Red Frame to Rotate on (X)
-Change Framerate under File -> Project Settings
-Ctrl+R - render frame
-Ctrl+Alt+Arrows Keys - Next/Prev keyframe
-Set Scale X,Y,Z to 0 for empty keyframe
-Scale stays the same until changed again
-
-Poser Pro 11
-Ctrl+E - restore object
-Ctrl+Shift+F - Restore Figure (reset?)
-Ctrl+Shift+H - Restore Camera(reset?)
-Ctrl+Alt+1 - Sillouhette
-Click on Ground, go to Object -> Lock Object
-Uncheck Animating Box in Main Camera properties to disable keyframing camera
-Numpad 2 - Select Actor Body
-Numpad 3 - Main Camera
-D  - toggle multi cameras (something must be selected/clicked)
-Y - Select Tool
-M - Direct Manipulation Tool 
-Ctrl+Shift+E - Hierarchy Editor
-Ctrl+Shift+V - Animation Pallette
-Copy/Paste Frames in Timeline for empty keyframes
-Display -> Background Color -> White
-Figure -> Use Inverse Kinematics -> uncheck them
-Move Hip to move entire body
-Edit Shortcuts - look for edit -> next Selection (use to go into different "groups of joints")
-Use Up/Down Arrow for going through each "group"
-Ctrl+B - toggle bg picture
-Ctrl+J  - Animation -> Make Movie
-Ctrl+G - Toggle Ground Visibility
 
 Krita
 Tools -> Scripting -> Ten Brushes -> Drag n Drop Shapes_Fill brush to desired shortcut

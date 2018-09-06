@@ -1,0 +1,15 @@
+
+Moho
+Set Interpolation to Step, 1 for frame by frame animation before starting
+Window -> Poser Parameters
+Uncheck enable drawing tools only on frame 0 at Edit -> Preferences -> Tools
+Tilda - expand workspace
+M - grab move (X) and (Y)
+Alt in Move Mode - Move Forward/Back (Z) Move mouse Up and Down
+Alt in Pose Mode - Move/Rotate entire body though the text indicating the selected body part may not be updated
+Click on Red Frame to Rotate on (X)
+Change Framerate under File -> Project Settings
+Ctrl+R - render frame
+Ctrl+Alt+Arrows Keys - Next/Prev keyframe
+Set Scale X,Y,Z to 0 for empty keyframe
+Scale stays the same until changed again
