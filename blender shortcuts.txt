@@ -143,8 +143,16 @@ Make Child unclickable by unchecking mouse icon in outliner
 See bg in Rendered Viewport Shading, Set to Cycles Render, Properties Camera Icon, Film, Check Transparent box
 See bg in Rendered Viewport Shading, Set to Blender Render, Properties Camera Icon, Shading, Change Alpha Mode to Transparent
 When Adding movieclip, make to set Viewport Shading to Solid and Color to Linear Aces
-Properties -> Lamp -> Change to Point Light, Uncheck specular and diffuse OR hide lamp, then Properties -> World -> Change Ambient Color to White
-	Click Mesh -> Material Icon in Outliner -> Check Shadeless
+For white freestyle renders, Properties -> Lamp -> Change to Point Light, Uncheck specular and diffuse, then Properties -> World -> Change Ambient Color to White
+For Blender Internal Shadeless, Click Mesh -> Click Material Icon in Outliner -> Check Shadeless, In lamp, Change to Sun light, Check specular and diffuse for non-shadeless materials
+For Cycles Shadeless, Click Mesh -> Open Node Editor, Add Emission Shader Node, Link Image Texture's Color to Emission's Color, Link Emission to Material Output's Surface
+	Enable Ambient Occlusion in world for the meshes you didn't make shadeless
+	F - make link
+	Shift+F - switch link
+	Ctrl+LeftClick - delete link
+	If freestyle lines don't start rendering, restart Blender or mess with View Cache and Diffuse, Glossy, etc under Passes
+	Render Silhoueet Contour and Edge Mark (Ctrl+E to make freestyle edge)
+Use Lattice Modifier with Shapekeys, Press I over Shapekey values to add keyframe
 Click Character -> N -> Display -> Check Only Rendered to Hide Bones and transform manipulators
 Set Keying Set to Whole Character 
 Ctrl+U - save your current settings and setup as the default startup view
