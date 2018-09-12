@@ -142,7 +142,7 @@ Alt+Space - change orientation to local, etc
 Make Child unclickable by unchecking mouse icon in outliner
 See bg in Rendered Viewport Shading, Set to Cycles Render, Properties Camera Icon, Film, Check Transparent box
 See bg in Rendered Viewport Shading, Set to Blender Render, Properties Camera Icon, Shading, Change Alpha Mode to Transparent
-When Adding movieclip, make to set Viewport Shading to Solid and Color to Linear Aces
+When Adding movieclip, make to set Viewport Shading to Solid and Color to Linear Aces(maybe), Uncheck Camera Clip
 For white freestyle renders, Properties -> Lamp -> Change to Point Light, Uncheck specular and diffuse, then Properties -> World -> Change Ambient Color to White
 For Blender Internal Shadeless, Click Mesh -> Click Material Icon in Outliner -> Check Shadeless, In lamp, Change to Sun light, Check specular and diffuse for non-shadeless materials
 For Cycles Shadeless, Click Mesh -> Open Node Editor, Add Emission Shader Node, Link Image Texture's Color to Emission's Color, Link Emission to Material Output's Surface
@@ -152,6 +152,9 @@ For Cycles Shadeless, Click Mesh -> Open Node Editor, Add Emission Shader Node, 
 	Ctrl+LeftClick - delete link
 	If freestyle lines don't start rendering, restart Blender or mess with View Cache and Diffuse, Glossy, etc under Passes
 	Render Silhoueet Contour and Edge Mark (Ctrl+E to make freestyle edge)
+	Ctrl+L - link menu
+	U - unlink(make single user) menu
+For Solidify Outline, add Solidify Modifier, Set Offset to 1 and Check Flip Normals, Add Black material to Mesh, Set it using material index offset
 Use Lattice Modifier with Shapekeys, Press I over Shapekey values to add keyframe
 Click Character -> N -> Display -> Check Only Rendered to Hide Bones and transform manipulators
 Set Keying Set to Whole Character 
@@ -247,6 +250,36 @@ I - create new keyframe
 In dope sheet, right click select frame
 g - grab and move them
 
+Neobarok
+Check Render -> Selection
+tilde - Full Mode
+X - sym X / Y - sym Y / Z - sym Z (add Shift for rotation axes)
+O - Projection on: O - object / N - normal plane (flat) / T - tangent place (free) / D - same depth 
+Ctrl+LeftClick - duplicate
+*OBJECT IS A nEW CLASS
+J - Add on to Linked / Single Objects new nodes (observer/instance within a class)
+K - link/unlink 
+\ - hide manipulators
+G - group / items
+. - Snap Grid
+, - Snap Symmetry
+F - Frame: Object
+Shift+F - Frame: Screen
+Numpad 1 - Closed / Open Line 
+A - assembly
+	F1 - Insert (mouseXY - position)
+	F2 - Place (mouseX - rotate, mouseY - scale)
+	F3 - rotate / 1 - move / 2 - scale
+	f4 - material
+Sculpt Mode 
+	F1 - Deform
+	F2 - Deflate
+	F3 - Pinch
+	1 - Smooth / Deform Volume
+	Q - Select Element / Component / Patch / All Patches
+	W - Section (form) / Axis (shape)
+Element - pieces of original primitivve
+Component - original primitive
 
 Krita
 Tools -> Scripting -> Ten Brushes -> Drag n Drop Shapes_Fill brush to desired shortcut
