@@ -250,6 +250,41 @@ I - create new keyframe
 In dope sheet, right click select frame
 g - grab and move them
 
+Wings 3d
+Edit -> Preferences -> Camera -> Blender Mode
+Middle Mouse Button - Move
+Ctrl+Middle Mouse Button - Zoom
+Shift+Middle Mouse Button - Pan
+Space - Deselect All
+A - focus on moused over object
+Shift+A - focus on all selected objects
+
+Nvil
+Alt+LMB - orbit (,)
+Alt+MMB - pan (.)
+Alt+RMB - zoom (/)
+Ctrl+LMB - divide x
+Ctrl+MMB - divide y
+Ctrl+RMB - divide z
+Space - Toggle Quad View
+Q - selection
+W - Move
+E - Rotate
+R - Scale
+A - extrude
+*S - (RMB) Inset / LMB (Bevel) / Edge cut
+D - Draw Free Polygons
+*G - slide vertex / slide edge / select face loop
+X - Select With Brush
+C - Cut on Face
+N - Local Rotation (Space - switch axes)
+1 - vertex mode
+2 - edge mode
+3 - face mode
+4 - mesh mode
+5 - object mode
+
+
 Neobarok
 Check Render -> Selection
 tilde - Full Mode
@@ -277,7 +312,7 @@ Sculpt Mode
 	F3 - Pinch
 	1 - Smooth / Deform Volume
 	Q - Select Element / Component / Patch / All Patches
-	W - Section (form) / Axis (shape)
+	W - Section (form, can't sculpt) / Axis (shape)
 Element - pieces of original primitivve
 Component - original primitive
 
