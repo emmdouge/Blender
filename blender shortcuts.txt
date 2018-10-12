@@ -272,7 +272,7 @@ W - Move
 E - Rotate
 R - Scale
 A - extrude
-*S - (RMB) Inset / LMB (Bevel) / Edge cut
+*S - Weld[Fuse vertex] / Edge cut / (RMB) Inset / LMB (Bevel) 
 D - Draw Free Polygons
 *G - slide vertex / slide edge / select face loop
 X - Select With Brush
