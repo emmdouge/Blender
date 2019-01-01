@@ -128,7 +128,7 @@ SHIFT+D duplicate
 use Ctrl + Alt + Numpad 0 - To make your active camera match up with the viewport
 Home - fit camera to viewport (unlocked camera, leaves camera when you move | locked camera, moves camera when you move 
 Shift+B - Draw a box zoom
-Alt+F - Center to Mouse position (will not work if viewport is locked to object or in camera perspec.tive
+Alt+F - Center to Mouse position (will not work if viewport is locked to object or in camera perspective
 Ctrl + Numpad Arrows - Panning
 Ctrl + Up Arrow - Enlarge whatever 3d view your mouse is hovering on
 Ctrl + Down Arrow - toggle  on enlarged view
