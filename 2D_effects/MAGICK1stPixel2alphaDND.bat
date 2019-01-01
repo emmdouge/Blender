@@ -4,6 +4,5 @@ for /F "tokens=3 delims= " %%a in ("%VAR%") do (
    SET VAR=%%a
 )
 echo:%VAR%
-pause
-magick %1 -transparent %VAR% %1
+magick convert %1 -fuzz 40%% -fill none -opaque %VAR% %1
 pause
