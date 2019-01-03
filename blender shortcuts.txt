@@ -144,6 +144,7 @@ See bg in Rendered Viewport Shading, Set to Cycles Render, Properties Camera Ico
 See bg in Rendered Viewport Shading, Set to Blender Render, Properties Camera Icon, Shading, Change Alpha Mode to Transparent
 DON'T USE Nodes for Material shading on clothes. Doesn't have good cast shadows.
 For Lighting Scene, Check Diffuse and Specular for light! Change Specular/Diffuse color on material
+Keyframe intesity by pressing I while hovering over the bar
 Check shadows for render pass under render layers
 When Adding movieclip, make to set Viewport Shading to Solid and Color to Linear Aces(maybe), Uncheck Camera Clip
 For white freestyle renders, Properties -> Lamp -> Change to Point Light, Uncheck specular and diffuse, then Properties -> World -> Change Ambient Color to White
