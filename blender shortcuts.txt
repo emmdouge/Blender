@@ -143,7 +143,11 @@ Make Child unclickable by unchecking mouse icon in outliner
 See bg in Rendered Viewport Shading, Set to Cycles Render, Properties Camera Icon, Film, Check Transparent box
 See bg in Rendered Viewport Shading, Set to Blender Render, Properties Camera Icon, Shading, Change Alpha Mode to Transparent
 DON'T USE Nodes for Material shading on clothes. Doesn't have good cast shadows.
-For Lighting Scene, Check Diffuse and Specular for light! Change Specular/Diffuse color on material
+For Lighting Scene, Check Diffuse and Specular for light under Render Layers tab! 
+Duplicate Shadeless Scene - Link Objects
+Shading Scene - Shadeless material for non-shadows, Default Grey material with Cast checked under Shadow for shadows, 
+Lighting Scene - Shadeless material for non-lights. Use diff mat for lights. Change Specular/Diffuse color on material
+U -> M - Make Single User of Object & Data & Material & Tex
 Keyframe intesity by pressing I while hovering over the bar
 Check shadows for render pass under render layers
 When Adding movieclip, make to set Viewport Shading to Solid and Color to Linear Aces(maybe), Uncheck Camera Clip
