@@ -147,6 +147,7 @@ For Lighting Scene, Check Diffuse and Specular for light under Render Layers tab
 Duplicate Shadeless Scene - Link Objects
 Shading Scene - Shadeless material for non-shadows, Default Grey material with Cast checked under Shadow for shadows, 
 Lighting Scene - Shadeless material for non-lights. Use diff mat for lights. Change Specular/Diffuse color on material
+Set Lamp in Lighting Scene to No Shadow
 U -> M - Make Single User of Object & Data & Material & Tex
 Keyframe intesity by pressing I while hovering over the bar
 Check shadows for render pass under render layers
