@@ -2,6 +2,13 @@ Enable Pie Menu Add-on In User preferences
 Install Xps (xnalara) importer thing 
 Enable AnimAll (animate vertices)
 
+When importing anims, 
+-check animation planes
+-uncheck match movie length
+-check auto refresh
+-check shadeless and use alpha
+-see anim in material viewport
+
 Shift+F2 for a Logic editor
 
 Shift+F3 for a Node editor
