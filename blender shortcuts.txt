@@ -152,7 +152,7 @@ U -> M - Make Single User of Object & Data & Material & Tex
 Keyframe intesity by pressing I while hovering over the bar
 Check shadows for render pass under render layers
 When Adding movieclip, make to set Viewport Shading to Solid and Color to Linear Aces(maybe), Uncheck Camera Clip
-For white freestyle renders, Properties -> Lamp -> Change to Point Light, Uncheck specular and diffuse, then Properties -> World -> Change Ambient Color to White
+For white freestyle renders, Properties -> World -> Change Ambient Color to White and Uncheck Environment Lighting
 For Blender Internal Shadeless, Click Mesh -> Click Material Icon in Outliner -> Check Shadeless, In lamp, Change to Sun light, Check specular and diffuse for non-shadeless materials
 For Cycles Shadeless, Click Mesh -> Open Node Editor, Add Emission Shader Node, Link Image Texture's Color to Emission's Color, Link Emission to Material Output's Surface
 	Enable Ambient Occlusion in world for the meshes you didn't make shadeless
