@@ -7,6 +7,7 @@ When importing anims,
 -uncheck match movie length
 -check auto refresh
 -check shadeless and use alpha
+-set alpha mode to premultiplied
 -see anim in material viewport
 
 Shift+F2 for a Logic editor
