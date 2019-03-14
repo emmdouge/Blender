@@ -1,4 +1,5 @@
 Enable Pie Menu Add-on In User preferences
+Enable Copy Attributes Add-on (Ctrl+C to copy loc/rot)
 Install Xps (xnalara) importer thing 
 Enable AnimAll (animate vertices)
 
