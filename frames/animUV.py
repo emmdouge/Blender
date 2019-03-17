@@ -5,6 +5,30 @@ from math import radians
 
 scene = bpy.context.scene
 
+def smartUVs(mesh, xPlus):
+	# add a UV layer called "spiral" and make it slanted.
+	lm = mesh.uv_textures.new("spiral")
+
+	#bpy.ops.uv.smart_project(angle_limit=radians(66), island_margin = 0.02)
+	bpy.ops.uv.smart_project()
+	
+	bm = bmesh.new()
+	bm.from_mesh(mesh)
+	uv_layer = bm.loops.layers.uv[0]
+	bm.faces.layers.tex.verify()  # currently blender needs both layers.
+	
+	# adjust UVs
+	for f in bm.faces:
+		for l in f.loops:
+			luv = l[uv_layer]
+			if luv.select:
+				# apply the location of the vertex as a UV
+				luv.uv = l.vert.co.xy
+
+	bpy.ops.object.mode_set(mode='EDIT')
+	bmesh.update_edit_mesh(mesh)	
+	bpy.ops.object.mode_set(mode='OBJECT')
+
 def spiralUVs(mesh, xPlus):
 	# add a UV layer called "spiral" and make it slanted.
 	lm = mesh.uv_textures.new("spiral")
@@ -65,8 +89,9 @@ def main():
 	mesh = bpy.context.object.data
 		
 	bpy.ops.object.mode_set(mode='OBJECT')
-	spiralUVs(mesh, 0)
-
+	#spiralUVs(mesh, 0)
+	smartUVs(mesh, 0)
+	
 	uvs_layer = mesh.uv_layers[0]
 
 	#Create control armature
