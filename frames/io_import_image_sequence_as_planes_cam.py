@@ -36,6 +36,7 @@ from mathutils import Vector
 import os
 import collections
 import pprint
+from math import pi
 
 from bpy.props import (StringProperty,
                        BoolProperty,
@@ -45,7 +46,7 @@ from bpy.props import (StringProperty,
                        CollectionProperty,
                        )
 
-from bpy_extras.object_utils import AddObjectHelper, object_data_add
+from bpy_extras.object_utils import AddObjectHelper, object_data_add, world_to_camera_view
 from bpy_extras.image_utils import load_image
 
 # -----------------------------------------------------------------------------
@@ -84,56 +85,78 @@ CYCLES_SHADERS = (
     ('EMISSION_BSDF_TRANSPARENT', "Emission & Transparent", "Emission and Transparent Mix")
 )    # -------------------------------------
 
-# Properties - Position and Orientation
-axis_id_to_vector = {
-    'X+': Vector(( 1,  0,  0)),
-    'Y+': Vector(( 0,  1,  0)),
-    'Z+': Vector(( 0,  0,  1)),
-    'X-': Vector((-1,  0,  0)),
-    'Y-': Vector(( 0, -1,  0)),
-    'Z-': Vector(( 0,  0, -1)),
-}
+def offset_planes(planes, gap, axis):
+    """Offset planes from each other by `gap` amount along a _local_ vector `axis`
 
-offset = BoolProperty(name="Offset Planes", default=True, description="Offset Planes From Each Other")
+    For example, offset_planes([obj1, obj2], 0.5, Vector(0, 0, 1)) will place
+    obj2 0.5 blender units away from obj1 along the local positive Z axis.
 
-OFFSET_MODES = (
-    ('X+', "X+", "Side by Side to the Left"),
-    ('Y+', "Y+", "Side by Side, Downward"),
-    ('Z+', "Z+", "Stacked Above"),
-    ('X-', "X-", "Side by Side to the Right"),
-    ('Y-', "Y-", "Side by Side, Upward"),
-    ('Z-', "Z-", "Stacked Below"),
-)
-offset_axis = EnumProperty(
-    name="Orientation", default='X+', items=OFFSET_MODES,
-    description="How planes are oriented relative to each others' local axis"
-)
+    This is in local space, not world space, so all planes should share
+    a common scale and rotation.
+    """
+    prior = planes[0]
+    offset = Vector()
+    #movement 
+    for current in planes[1:]:
 
-offset_amount = FloatProperty(
-    name="Offset", soft_min=0, default=0.1, description="Space between planes",
-    subtype='DISTANCE', unit='LENGTH'
-)
+        local_offset = abs((prior.dimensions + current.dimensions) * axis) / 2.0 + gap
 
-AXIS_MODES = (
-    ('X+', "X+", "Facing Positive X"),
-    ('Y+', "Y+", "Facing Positive Y"),
-    ('Z+', "Z+ (Up)", "Facing Positive Z"),
-    ('X-', "X-", "Facing Negative X"),
-    ('Y-', "Y-", "Facing Negative Y"),
-    ('Z-', "Z- (Down)", "Facing Negative Z"),
-    ('CAM', "Face Camera", "Facing Camera"),
-    ('CAM_AX', "Main Axis", "Facing the Camera's dominant axis"),
-)
-align_axis = EnumProperty(
-    name="Align", default='CAM_AX', items=AXIS_MODES,
-    description="How to align the planes"
-)
-# prev_align_axis is used only by update_size_model
-prev_align_axis = EnumProperty(
-    items=AXIS_MODES + (('NONE', '', ''),), default='NONE', options={'HIDDEN', 'SKIP_SAVE'})
-align_track = BoolProperty(
-    name="Track Camera", default=True, description="Always face the camera"
-)
+        offset += local_offset * axis
+        current.location = current.matrix_world * offset
+
+        prior = current
+
+def compute_camera_size(context, center, fill_mode, aspect):
+    """Determine how large an object needs to be to fit or fill the camera's field of view."""
+    scene = context.scene
+    camera = scene.camera
+    view_frame = camera.data.view_frame(scene=scene)
+    frame_size = \
+        Vector([max(v[i] for v in view_frame) for i in range(3)]) - \
+        Vector([min(v[i] for v in view_frame) for i in range(3)])
+    camera_aspect = frame_size.x / frame_size.y
+
+    # Convert the frame size to the correct sizing at a given distance
+    if camera.type == 'ORTHO':
+        frame_size = frame_size.xy
+    else:
+        # Perspective transform
+        distance = world_to_camera_view(scene, camera, center).z
+        frame_size = distance * frame_size.xy / (-view_frame[0].z)
+
+    # Determine what axis to match to the camera
+    match_axis = 0  # match the Y axis size
+    match_aspect = aspect
+    if (fill_mode == 'FILL' and aspect > camera_aspect) or \
+            (fill_mode == 'FIT' and aspect < camera_aspect):
+        match_axis = 1  # match the X axis size
+        match_aspect = 1.0 / aspect
+
+    # scale the other axis to the correct aspect
+    frame_size[1 - match_axis] = frame_size[match_axis] / match_aspect
+
+    return frame_size
+
+
+def center_in_camera(scene, camera, obj, axis=(1, 1)):
+    """Center object along specified axiis of the camera"""
+    camera_matrix_col = camera.matrix_world.col
+    location = obj.location
+
+    # Vector from the camera's world coordinate center to the object's center
+    delta = camera_matrix_col[3].xyz - location
+
+    # How far off center we are along the camera's local X
+    camera_x_mag = delta * camera_matrix_col[0].xyz * axis[0]
+    # How far off center we are along the camera's local Y
+    camera_y_mag = delta * camera_matrix_col[1].xyz * axis[1]
+
+    # Now offet only along camera local axiis
+    offset = camera_matrix_col[0].xyz * camera_x_mag + \
+        camera_matrix_col[1].xyz * camera_y_mag
+
+    obj.location = location + offset
+
 
 # -----------------------------------------------------------------------------
 # Misc utils.
@@ -277,6 +300,75 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
     # -------------------
     # Plane size options.
+
+
+    def align_plane(self, context, plane):
+        """Pick an axis and align the plane to it"""
+        if 'CAM' in self.align_axis:
+            # Camera-aligned
+            camera = context.scene.camera
+            if (camera):
+                # Find the axis that best corresponds to the camera's view direction
+                axis = camera.matrix_world * \
+                    Vector((0, 0, 1)) - camera.matrix_world.col[3].xyz
+                # pick the axis with the greatest magnitude
+                mag = max(map(abs, axis))
+                # And use that axis & direction
+                axis = Vector([
+                    n / mag if abs(n) == mag else 0.0
+                    for n in axis
+                ])
+            else:
+                # No camera? Just face Z axis
+                axis = Vector((0, 0, 1))
+                self.align_axis = 'Z+'
+        else:
+            # Axis-aligned
+            axis = self.axis_id_to_vector[self.align_axis]
+
+        # rotate accodingly for x/y axiis
+        if not axis.z:
+            plane.rotation_euler.x = pi / 2
+
+            if axis.y > 0:
+                plane.rotation_euler.z = pi
+            elif axis.y < 0:
+                plane.rotation_euler.z = 0
+            elif axis.x > 0:
+                plane.rotation_euler.z = pi / 2
+            elif axis.x < 0:
+                plane.rotation_euler.z = -pi / 2
+
+        # or flip 180 degrees for negative z
+        elif axis.z < 0:
+            plane.rotation_euler.y = pi
+
+        if self.align_axis == 'CAM':
+            constraint = plane.constraints.new('COPY_ROTATION')
+            constraint.target = camera
+            constraint.use_x = constraint.use_y = constraint.use_z = True
+            if not self.align_track:
+                bpy.ops.object.visual_transform_apply()
+                plane.constraints.clear()
+
+        if self.align_axis == 'CAM_AX' and self.align_track:
+            constraint = plane.constraints.new('LOCKED_TRACK')
+            constraint.target = camera
+            constraint.track_axis = 'TRACK_Z'
+            constraint.lock_axis = 'LOCK_Y'
+    
+    def update_size_mode(self, context):
+        """If sizing relative to the camera, always face the camera"""
+        if self.size_mode == 'CAMERA':
+            self.prev_align_axis = self.align_axis
+            self.align_axis = 'CAM'
+        else:
+            # if a different alignment was set revert to that when
+            # size mode is changed
+            if self.prev_align_axis != 'NONE':
+                self.align_axis = self.prev_align_axis
+                self._prev_align_axis = 'NONE'
+    
     _size_modes = (
         ('ABSOLUTE', "Absolute", "Use absolute size"),
         ('CAMERA', "Camera Relative", "Scale to the camera frame"),
@@ -284,7 +376,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         ('DPBU', "Dots/BU", "Use definition of the image as dots per Blender Unit"),
     )
     size_mode = EnumProperty(name="Size Mode", default='ABSOLUTE', items=_size_modes,
-                             description="How the size of the plane is computed")
+                             update=update_size_mode, description="How the size of the plane is computed")
     FILL_MODES = (
         ('FILL', "Fill", "Fill camera frame, spilling outside the frame"),
         ('FIT', "Fit", "Fit entire image within the camera frame"),
@@ -297,6 +389,57 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
     factor = FloatProperty(name="Definition", min=1.0, default=600.0,
                            description="Number of pixels per inch or Blender Unit")
+
+    # Properties - Position and Orientation
+    axis_id_to_vector = {
+        'X+': Vector(( 1,  0,  0)),
+        'Y+': Vector(( 0,  1,  0)),
+        'Z+': Vector(( 0,  0,  1)),
+        'X-': Vector((-1,  0,  0)),
+        'Y-': Vector(( 0, -1,  0)),
+        'Z-': Vector(( 0,  0, -1)),
+    }
+
+    offset = BoolProperty(name="Offset Planes", default=True, description="Offset Planes From Each Other")
+
+    OFFSET_MODES = (
+        ('X+', "X+", "Side by Side to the Left"),
+        ('Y+', "Y+", "Side by Side, Downward"),
+        ('Z+', "Z+", "Stacked Above"),
+        ('X-', "X-", "Side by Side to the Right"),
+        ('Y-', "Y-", "Side by Side, Upward"),
+        ('Z-', "Z-", "Stacked Below"),
+    )
+    offset_axis = EnumProperty(
+        name="Orientation", default='Z+', items=OFFSET_MODES,
+        description="How planes are oriented relative to each others' local axis"
+    )
+
+    offset_amount = FloatProperty(
+        name="Offset", soft_min=0, default=0.1, description="Space between planes",
+        subtype='DISTANCE', unit='LENGTH'
+    )
+
+    AXIS_MODES = (
+        ('X+', "X+", "Facing Positive X"),
+        ('Y+', "Y+", "Facing Positive Y"),
+        ('Z+', "Z+ (Up)", "Facing Positive Z"),
+        ('X-', "X-", "Facing Negative X"),
+        ('Y-', "Y-", "Facing Negative Y"),
+        ('Z-', "Z- (Down)", "Facing Negative Z"),
+        ('CAM', "Face Camera", "Facing Camera"),
+        ('CAM_AX', "Main Axis", "Facing the Camera's dominant axis"),
+    )
+    align_axis = EnumProperty(
+        name="Align", default='CAM_AX', items=AXIS_MODES,
+        description="How to align the planes"
+    )
+    # prev_align_axis is used only by update_size_model
+    prev_align_axis = EnumProperty(
+        items=AXIS_MODES + (('NONE', '', ''),), default='NONE', options={'HIDDEN', 'SKIP_SAVE'})
+    align_track = BoolProperty(
+        name="Track Camera", default=True, description="Always face the camera"
+    )
 
     # -------------------------
     # Blender material options.
@@ -446,6 +589,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
         for plane in planes:
             plane.select = True
+            self.align_plane(context, plane)
 
         self.report({'INFO'}, "Added {} Image Plane(s)".format(len(planes)))
 
@@ -465,6 +609,11 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         if self.size_mode == 'ABSOLUTE':
             y = self.height
             x = px / py * y
+        elif self.size_mode == 'CAMERA':
+            x, y = compute_camera_size(
+                context, context.scene.cursor_location,
+                self.fill_mode, px / py
+            )
         elif self.size_mode == 'DPI':
             fact = 1 / self.factor / context.scene.unit_settings.scale_length * 0.0254
             x = px * fact
@@ -486,6 +635,10 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         plane.data.materials.append(material)
         plane.data.uv_textures[0].data[0].image = img
 
+        offset_axis = self.axis_id_to_vector[self.offset_axis]
+        translate_axis = [0 if offset_axis[i] else 1 for i in (0, 1)]
+        center_in_camera(context.scene, context.scene.camera, plane, translate_axis)
+    
         material.game_settings.use_backface_culling = False
         material.game_settings.alpha_blend = 'ALPHA'
         
@@ -562,15 +715,8 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
     def align_planes(self, planes):
         gap = self.align_offset
-        offset = 0
-        for i, plane in enumerate(planes):
-            offset += (plane.dimensions.x / 2.0) + gap
-            if i == 0:
-                continue
-            move_local = mathutils.Vector((offset, 0.0, 0.0))
-            move_world = plane.location + move_local * plane.matrix_world.inverted()
-            plane.location += move_world
-            offset += (plane.dimensions.x / 2.0)
+        offset_axis = Vector((0,  0,  1))
+        offset_planes(planes, self.offset_amount, offset_axis)
 
     def generate_paths(self):
         return (fn.name for fn in self.files if is_image_fn(fn.name, self.extension)), self.directory
