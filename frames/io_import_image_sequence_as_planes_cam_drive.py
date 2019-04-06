@@ -595,15 +595,14 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 		if self.align:
 			self.align_planes(planes)
 
+				
+		target = context.scene.camera
 		for plane in planes:
 			plane.select = True
 			self.align_plane(context, plane)
-
-		source = planes[0]
-		target = context.scene.camera
-		self.add_driver(source, target, 'scale', 'scale.x', "0")
-		self.add_driver(source, target, 'scale', 'scale.y', "1")
-		self.add_driver(source, target, 'scale', 'scale.z', "2")
+			self.add_driver(plane, target, 'scale', 'scale.x', "0")
+			self.add_driver(plane, target, 'scale', 'scale.y', "1")
+			self.add_driver(plane, target, 'scale', 'scale.z', "2")
 
 		self.report({'INFO'}, "Added {} Image Plane(s)".format(len(planes)))
 

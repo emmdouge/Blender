@@ -8,6 +8,7 @@ When importing anims,
 -uncheck match movie length
 -check auto refresh
 -check shadeless and use alpha
+-check offset planes and select Z+
 -set alpha mode to premultiplied
 -see anim in material viewport
 
@@ -161,7 +162,7 @@ U -> M - Make Single User of Object & Data & Material & Tex
 Keyframe intesity by pressing I while hovering over the bar
 Check shadows for render pass under render layers
 When Adding movieclip, make to set Viewport Shading to Solid and Color to Linear Aces(maybe), Uncheck Camera Clip
-For white freestyle renders, Properties -> World -> Change Ambient Color to White and Uncheck Environment Lighting
+For white freestyle renders, Properties -> World -> Change Ambient Color to White and Uncheck Environment Lighting, Hide lamp
 For Blender Internal Shadeless, Click Mesh -> Click Material Icon in Outliner -> Check Shadeless, In lamp, Change to Sun light, Check specular and diffuse for non-shadeless materials
 For Cycles Shadeless, Click Mesh -> Open Node Editor, Add Emission Shader Node, Link Image Texture's Color to Emission's Color, Link Emission to Material Output's Surface
 	Enable Ambient Occlusion in world for the meshes you didn't make shadeless
@@ -267,6 +268,18 @@ I - create new keyframe
 
 In dope sheet, right click select frame
 g - grab and move them
+
+Workflow
+Set the 3d Scene
+Animation
+Add FX
+Render w/ and w/o animation
+Cleanup Lineart
+Color in Photoshop
+Color Correction
+Compositing with Alpha channel
+
+
 
 Wings 3d
 Edit -> Preferences -> Camera -> Blender Mode
