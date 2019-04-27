@@ -269,6 +269,8 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 	
 	animate = BoolProperty(name="Animate Planes", default=False, description="Display only one plane at the time to create an animation. 'Align' options should be disabled to be able to see the animation.", update=update_animate)
 	animate_duration = IntProperty(name="Animation duration per frame", min=1, soft_min=1, default=4, description="In an animation each frame will be shown this number of frames.")
+	animate_start = IntProperty(name="Animation start frame", min=1, soft_min=1, default=1, description="The frame the animation will begin.")
+	animate_loop = IntProperty(name="Animation loop count", min=1, soft_min=1, default=1, description="The number of times the animation will be repeated.")
 
 	align_offset = FloatProperty(name="Offset", min=0, soft_min=0, default=0.1, description="Space between Planes")
 	
@@ -496,6 +498,8 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 		box.prop(self, "align_offset")
 		box.prop(self, "animate")
 		box.prop(self, "animate_duration")
+		box.prop(self, "animate_start")
+		box.prop(self, "animate_loop")
 
 		row = box.row()
 		row.active = bpy.data.is_saved
@@ -589,7 +593,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 		
 		if self.animate:
 			for plane in planes:
-				self.animate_plane(plane)
+				self.animate_plane(plane, len(planes))
 
 		context.scene.update()
 		if self.align:
@@ -660,10 +664,12 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
 
 
-	def animate_plane(self, plane):
+	def animate_plane(self, plane, numPlanes):
 		
 		global PLANE_COUNTER
 		DURATION = self.animate_duration
+		START_FRAME = self.animate_start
+		LOOPS = self.animate_loop
 		
 		print ("animating plane: %s"% plane)
 		
@@ -701,29 +707,40 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 			fcu2 = [ x for x in ob.animation_data.action.fcurves if x.data_path == 'hide_render' ][0]
 		
 		#add 2 points, one for hide, one for hide render
-		fcu.keyframe_points.add(3)
-		fcu2.keyframe_points.add(3)
+		fcu.keyframe_points.add(1)
+		fcu2.keyframe_points.add(1)
+		fcu.keyframe_points.add(2*LOOPS)
+		fcu2.keyframe_points.add(2*LOOPS)
+
+		hide = 1
+		show = 0
 		
-		#set interpolation to constant
 		fcu.keyframe_points[0].interpolation = "CONSTANT"
-		fcu.keyframe_points[1].interpolation = "CONSTANT"
-		fcu.keyframe_points[2].interpolation = "CONSTANT"
-		fcu2.keyframe_points[0].interpolation = "CONSTANT"
-		fcu2.keyframe_points[1].interpolation = "CONSTANT"
-		fcu2.keyframe_points[2].interpolation = "CONSTANT"        
+		fcu2.keyframe_points[0].interpolation = "CONSTANT"   
+		fcu.keyframe_points[0].co = 0, hide
+		fcu2.keyframe_points[0].co = 0, hide
 
-		#sets the first point: visible
-		fcu.keyframe_points[0].co = 0, 1
+		pointX = 1
+		loopcount = 0
+		while pointX < 2*LOOPS:
+			#set interpolation to constant
+			fcu.keyframe_points[pointX].interpolation = "CONSTANT"
+			fcu.keyframe_points[pointX+1].interpolation = "CONSTANT"
+			fcu2.keyframe_points[pointX].interpolation = "CONSTANT"
+			fcu2.keyframe_points[pointX+1].interpolation = "CONSTANT"       
 
-		#how long to hide frame
-		fcu.keyframe_points[1].co = self.anim_counter * DURATION + 1, 0
+			planeX = (self.anim_counter * (DURATION))
 
-		#how long to show the frame
-		fcu.keyframe_points[2].co = (self.anim_counter + 1) * DURATION + 1 , 1
+			#sets the first point: hide
+			fcu.keyframe_points[pointX].co = planeX + (loopcount*DURATION*(numPlanes-1)) + pointX, show
+			fcu2.keyframe_points[pointX].co = planeX + (loopcount*DURATION*(numPlanes-1)) + pointX, show
 
-		fcu2.keyframe_points[0].co = 0, 1
-		fcu2.keyframe_points[1].co = self.anim_counter * DURATION + 1 , 0
-		fcu2.keyframe_points[2].co = (self.anim_counter + 1) * DURATION + 1, 1
+			#how long to show frame
+			fcu.keyframe_points[pointX+1].co = fcu.keyframe_points[pointX].co.x + DURATION, hide
+			fcu2.keyframe_points[pointX+1].co = fcu2.keyframe_points[pointX].co.x + DURATION, hide
+
+			pointX += 2
+			loopcount += 1
 		
 		self.anim_counter = self.anim_counter + 1
 		
