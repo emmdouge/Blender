@@ -717,8 +717,8 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 		
 		fcu.keyframe_points[0].interpolation = "CONSTANT"
 		fcu2.keyframe_points[0].interpolation = "CONSTANT"   
-		fcu.keyframe_points[0].co = 0, hide
-		fcu2.keyframe_points[0].co = 0, hide
+		fcu.keyframe_points[0].co = START_FRAME - 1, hide
+		fcu2.keyframe_points[0].co = START_FRAME - 1, hide
 
 		pointX = 1
 		loopcount = 0
@@ -732,8 +732,8 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 			planeX = (self.anim_counter * (DURATION))
 
 			#sets the first point: hide
-			fcu.keyframe_points[pointX].co = planeX + (loopcount*DURATION*(numPlanes-1)) + pointX, show
-			fcu2.keyframe_points[pointX].co = planeX + (loopcount*DURATION*(numPlanes-1)) + pointX, show
+			fcu.keyframe_points[pointX].co = START_FRAME + planeX + (loopcount*DURATION*(numPlanes-1)) + pointX, show
+			fcu2.keyframe_points[pointX].co = START_FRAME + planeX + (loopcount*DURATION*(numPlanes-1)) + pointX, show
 
 			#how long to show frame
 			fcu.keyframe_points[pointX+1].co = fcu.keyframe_points[pointX].co.x + DURATION, hide
