@@ -607,7 +607,11 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 			self.add_driver(plane, target, 'scale', 'scale.x', "0")
 			self.add_driver(plane, target, 'scale', 'scale.y', "1")
 			self.add_driver(plane, target, 'scale', 'scale.z', "2")
-
+		context.scene.update()
+		for plane in planes:
+			plane.parent = target
+			plane.matrix_parent_inverse = target.matrix_world.inverted()
+		context.scene.update()
 		self.report({'INFO'}, "Added {} Image Plane(s)".format(len(planes)))
 
 	def create_image_plane(self, context, material):
@@ -654,8 +658,9 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
 		offset_axis = self.axis_id_to_vector[self.offset_axis]
 		translate_axis = [0 if offset_axis[i] else 1 for i in (0, 1)]
+
 		center_in_camera(context.scene, context.scene.camera, plane, translate_axis)
-	
+    
 		material.game_settings.use_backface_culling = False
 		material.game_settings.alpha_blend = 'ALPHA'
 		
