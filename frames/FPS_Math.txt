@@ -1,0 +1,22 @@
+TEST:
+24fps
+apply 75% slow (playback speed = .25)
+6 fps on 1s = 360bpm
+6 fps on 12s (66% frame loss) = 30 bpm = 1fps to (24*4/12 = 8fps)
+T 25% speed: 90bpm = (4bps = 4s) = (3bs = 3s) = (2bps = 2s) = (Xbps = Xs)
+at full speed: (90bpm = 16s), (180bpm = 8s w/ 32b checkpoints), (360bpm = 4s)
+T 25% speed 120bpm = (4bps = 12s), (2bps = 6s), (1bps = 3s) w/ 12b checkpoints
+at full speed: (120bpm = 12s)  
+
+30fps
+apply 50% slow (playback speed = .25)
+15 fps on 1s = 900bpm
+15 fps on 30s (16.66% frame loss) = 30 bpm = 1fps to (30*4/15 = 8fps)
+T 50% speed: 60bpm = (2bps = 30s), (1bps = 15s) w/ 30b checkpoints
+at full speed: (60bpm = 30s)
+T 50% speed 120bpm = (60bps = 30s), (3bps = 10s) w/ 15b checkpoints
+at full speed: (120bpm = 15s)
+
+Conclusion:
+24fps , [100% - 120bpm - 12s], [25% - 120bpm  (1b = 3s, 2b = 6s, 3b = 12s)]
+30fps , [100% - 120bpm - 15s], [50% - 120bpm  (2b = 15s)], [50% - 60bpm (1b = 15s, 2b = 30s)]
