@@ -19,6 +19,6 @@ at full speed: (120bpm = 15s)
 
 Conclusion:
 24fps , [100% - 120bpm - 12s], [25% - 120bpm  (1b = 3s, 2b = 6s, 3b = 12s)]
-30fps , [100% - 120bpm - 15s], [50% - 120bpm  (2b = 15s into 3s, 4b = 30s into 2s)], [50% - 60bpm (1b = 15s into 3s, 2b = 30s into 2s)]
+30fps , [100% - 120bpm - 15s], [50% - 120bpm  (2b = 15s into 3s, 4b = 30s into 2s)], [50% - 60bpm (1b = 15s into 3s, 2b = 30s into 2s)], [20% - 120bpm  (1b = 3s, 2bp = 6s, 5bp = 15s)]
 **mixing 1s, 2s, and 3s on with 30fps requires animation with 50 fps (3s become 15s, 2s become 10s, 1s become 5s)
 **mixing 1s, 2s, and 3s on with 30fps may also be done by 120bpm 100fps 1b = 15s
