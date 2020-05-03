@@ -1,0 +1,1 @@
+ffmpeg -i %1 -vcodec h264 -acodec mp2 mov_to_mp4.mp4
