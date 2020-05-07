@@ -38,7 +38,7 @@ import collections
 import pprint
 from math import pi, sqrt
 import re
-from itertools import count, repeat
+from itertools import count, repeat, islice
 from collections import namedtuple
 
 from bpy.props import (StringProperty,
@@ -97,21 +97,20 @@ ImageSpec = namedtuple(
 
 num_regex = re.compile('[0-9]')  # Find a single number
 nums_regex = re.compile('[0-9]+')  # Find a set of numbers
+   
+def tryint(s):
+    try:
+        return int(s)
+    except:
+        return s
 
-
-def find_image_sequences(files):
-    """From a group of files, detect image sequences.
-
-    This returns a generator of tuples, which contain the filename,
-    start frame, and length of the detected sequence
-
-    >>> list(find_image_sequences([
-    ...     "test2-001.jp2", "test2-002.jp2",
-    ...     "test3-003.jp2", "test3-004.jp2", "test3-005.jp2", "test3-006.jp2",
-    ...     "blaah"]))
-    [('blaah', 1, 1), ('test2-001.jp2', 1, 2), ('test3-003.jp2', 3, 4)]
-
+def alphanum_key(obj):
+    """ Turn a string into a list of string and number chunks.
+        "z23a" -> ["z", 23, "a"]
     """
+    return [ tryint(c) for c in re.split('([0-9]+)', obj.name) ]
+    
+def find_image_sequences(files, num_frames):
     files = iter(sorted(files))
     prev_file = None
     pattern = ""
@@ -119,61 +118,26 @@ def find_image_sequences(files):
     segment = None
     length = 1
     for filename in files:
-        new_pattern = num_regex.sub('#', filename)
-        new_matches = list(map(int, nums_regex.findall(filename)))
-        if new_pattern == pattern:
-            # this file looks like it may be in sequence from the previous
-
-            # if there are multiple sets of numbers, figure out what changed
-            if segment is None:
-                for i, prev, cur in zip(count(), matches, new_matches):
-                    if prev != cur:
-                        segment = i
-                        break
-
-            # did it only change by one?
-            for i, prev, cur in zip(count(), matches, new_matches):
-                if i == segment:
-                    # We expect this to increment
-                    prev = prev + length
-                if prev != cur:
-                    break
-
-            # All good!
-            else:
-                length += 1
-                continue
-
-        # No continuation -> spit out what we found and reset counters
-        if prev_file:
-            if length > 1:
-                yield prev_file, matches[segment], length
-            else:
-                yield prev_file, 1, 1
-
         prev_file = filename
-        matches = new_matches
-        pattern = new_pattern
-        segment = None
-        length = 1
+        yield prev_file, num_frames, 1
+        
+def single_image_sequences(files, num_frames):
+    files = iter(sorted(files))
+    prev_file = None
+    pattern = ""
+    matches = []
+    segment = None
+    length = 1
+    for filename in files:
+        prev_file = filename
+        yield prev_file, 1, num_frames
+        break
 
-    if prev_file:
-        if length > 1:
-            yield prev_file, matches[segment], length
-        else:
-            yield prev_file, 1, 1
-
-
-def load_images(filenames, directory, force_reload=False, frame_start=1, find_sequences=False):
-    """Wrapper for bpy's load_image
-
-    Loads a set of images, movies, or even image sequences
-    Returns a generator of ImageSpec wrapper objects later used for texture setup
-    """
+def load_images(filenames, directory, force_reload=False, frame_start=1, find_sequences=False, num_frames=1, frame_duration=1):
     if find_sequences:  # if finding sequences, we need some pre-processing first
-        file_iter = find_image_sequences(filenames)
+        file_iter = find_image_sequences(filenames, num_frames)
     else:
-        file_iter = zip(filenames, repeat(1), repeat(1))
+        file_iter = single_image_sequences(filenames, num_frames)
 
     for filename, offset, frames in file_iter:
         image = load_image(filename, directory, check_existing=True, force_reload=force_reload)
@@ -188,7 +152,10 @@ def load_images(filenames, directory, force_reload=False, frame_start=1, find_se
             frames = image.frame_duration
             frames = image.frame_duration
 
-        elif frames > 1:  # Not movie, but multiple frames -> image sequence
+        elif frames > 1 and find_sequences:  # Not movie, but multiple frames -> image sequence
+            image.source = 'FILE'
+            
+        elif frames > 1 and find_sequences == False:  # Not movie, but multiple frames -> image sequence
             image.source = 'SEQUENCE'
 
         yield ImageSpec(image, size, frame_start, offset - 1, frames)
@@ -865,7 +832,9 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
             (fn.name for fn in self.files),
             self.directory,
             force_reload=self.force_reload,
-            find_sequences=self.animate
+            find_sequences=self.animate,
+            num_frames=len(self.files),
+            frame_duration=self.animate_duration
         ))
 
 
@@ -873,8 +842,9 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         
         #planes = tuple(self.create_image_plane(context, mat) for mat in materials)
         planes = [self.single_image_spec_to_plane(context, img_spec) for img_spec in images]
+        planes = sorted(planes, key=alphanum_key)
         ratio = '0.25'
-        
+        print ("type %s" % planes)
         if self.animate:
             for plane in planes:
                 self.animate_plane(plane, len(planes))
@@ -1083,6 +1053,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         DURATION = self.animate_duration
         START_FRAME = self.animate_start
         LOOPS = self.animate_loop
+        NUM_PLANES = numPlanes
         
         print ("animating plane: %s"% plane)
         
@@ -1109,9 +1080,9 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         
         #add a new fcurve for the "hide" property 
         if not "hide" in [ x.data_path for x in ob.animation_data.action.fcurves ]:
-            fcu = ob.animation_data.action.fcurves.new(data_path="hide")
+            fcu = ob.animation_data.action.fcurves.new(data_path="hide_viewport")
         else:
-            fcu = [ x for x in ob.animation_data.action.fcurves if x.data_path == 'hide' ][0]
+            fcu = [ x for x in ob.animation_data.action.fcurves if x.data_path == 'hide_viewport' ][0]
             
         #add a new fcurve for the "hide render" property  
         if not "hide_render" in [ x.data_path for x in ob.animation_data.action.fcurves ]:
@@ -1135,18 +1106,20 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
         pointX = 1
         loopcount = 0
-        while pointX < (2*LOOPS)+1:
+        while pointX < (2*LOOPS):
             #set interpolation to constant
             fcu.keyframe_points[pointX].interpolation = "CONSTANT"
             fcu.keyframe_points[pointX+1].interpolation = "CONSTANT"
             fcu2.keyframe_points[pointX].interpolation = "CONSTANT"
             fcu2.keyframe_points[pointX+1].interpolation = "CONSTANT"       
 
-            planeX = (self.anim_counter * (DURATION)) 
-
+            planeX = self.anim_counter*(DURATION)
+            offset = loopcount*numPlanes*DURATION
+            print ("numPlanes: %s"% NUM_PLANES)
+            print ("offset: %s"% offset)
             #sets the first point: hide
-            fcu.keyframe_points[pointX].co = START_FRAME + planeX + (loopcount*DURATION*(numPlanes)), show
-            fcu2.keyframe_points[pointX].co = START_FRAME + planeX + (loopcount*DURATION*(numPlanes)), show
+            fcu.keyframe_points[pointX].co = START_FRAME + planeX + offset, show
+            fcu2.keyframe_points[pointX].co = START_FRAME + planeX + offset, show
 
             #how long to show frame
             fcu.keyframe_points[pointX+1].co = fcu.keyframe_points[pointX].co.x + DURATION, hide
