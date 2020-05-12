@@ -1,46 +1,47 @@
 import bpy
+from math import pi, sqrt, degrees
 
 bl_info = {
     "name": "Revoltech Joint",
-    "author": "Vicente Carro, Florian Meyer (tstscr), mont29, matali",
+    "author": "Emmanuel Douge",
     "version": (1, 0, 0),
     "blender": (2, 80, 0),
-    "location": "File > Import > Images as Anim Planes or Add > Mesh > Image sequence as planes",
+    "location": "Pose Mode > Bone Properties",
     "description": "Move selected joint like a revoltech joint. "
                    "Locks rotation based on current rotation.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/Planes_from_Images",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21751",
-    "category": "Import-Export"}
+    "category": "Rigging"}
     
 class Revoltech(bpy.types.Panel):
     """Creates a Panel in the Object properties window"""
     bl_label = "Display Data"
-    bl_idname = "OBJECT_PT_hello"
+    bl_idname = "BONE_PT_hello"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
-    bl_context = "object"
+    bl_context = "bone"
 
     @classmethod
     def poll(cls, context):
-        return context.object is not None
+        return context.active_pose_bone is not None
 
     def draw(self, context):
         layout = self.layout
 
-        obj = context.object
-        pos = obj.matrix_world.to_translation()
+        bone = context.active_pose_bone
+        rot = bone.matrix.to_euler()
+        #bone.rotation_euler.rotate_axis("Z", radians(90))
 
         row = layout.row()
-        row.label(text="Active object is: " + obj.name)
+        row.label(text="Active object is: " + bone.name)
         row = layout.row()
-        row.label(text="object position z is %.2f" % pos.z)
-        printf("object position z is %.2f" % pos.z)
+        row.label(text="bone position z is %.2f" % rot.z)
+        print ("bone position z is %.2f" % rot.z)
 
 def prop_redraw(scene):
     for area in bpy.context.screen.areas:
         if area.type == 'PROPERTIES':
-            if area.spaces.active.context == 'OBJECT':
+            #printf ("active space: %s" % area.spaces.active.context)
+            if area.spaces.active.context == 'BONE':
                 area.tag_redraw()
 
 def register():
