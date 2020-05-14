@@ -89,8 +89,9 @@ class Revoltech(bpy.types.Panel):
         row = layout.row()
         row.label(text="Active object is: " + bone.name)
         row = layout.row()
-        row.label(text="Parent object is: " + bone.parent.name)
-        row = layout.row()
+        if bone.parent is not None:
+            row.label(text="Parent object is: " + bone.parent.name)
+            row = layout.row()
         x = q[3]
         y = q[1]
         z = q[2]
