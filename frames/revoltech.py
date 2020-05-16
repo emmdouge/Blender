@@ -12,16 +12,16 @@ bl_info = {
                    "Locks rotation based on current rotation.",
     "warning": "",
     "category": "Animation"}
-   
+
 def get_pose_bone_matrix(pose_bone):
     local_matrix = pose_bone.matrix_channel.to_3x3()
     if pose_bone.parent is None:
         return local_matrix
     else:
         return pose_bone.parent.matrix_channel.to_3x3().inverted() @ local_matrix
-
+        
 def getRoll(bone):
-    mat = bone.matrix.to_3x3()
+    mat = bone.matrix_local.to_3x3()
     quat = mat.to_quaternion()
     if abs(quat.w) < 1e-4:
         roll = pi
@@ -36,21 +36,12 @@ def lock(self, context, x, y, z):
     orientation = bpy.context.scene.transform_orientation_slots[0].type
     
     if orientation == 'LOCAL':
-        if 1 == 1:
-            lock = (-1*delta) <= z <= delta
-            bone.lock_rotation[1] = False # y
-            if lock:
-                bone.lock_rotation[0] = False # x
-            else:
-                bone.lock_rotation[0] = True # x
+        lock = (-1*delta) <= z <= delta
+        bone.lock_rotation[1] = False # y
+        if lock:
+            bone.lock_rotation[0] = False # x
         else:
-            edit_bone.roll = Math.radians(90)
-            lock = (-1*delta) <= z <= delta
-            bone.lock_rotation[1] = False # y
-            if lock:
-                bone.lock_rotation[0] = False # x
-            else:
-                bone.lock_rotation[0] = True # x
+            bone.lock_rotation[0] = True # x
                 
     space = context.space_data
     if not space.show_gizmo:
@@ -58,8 +49,36 @@ def lock(self, context, x, y, z):
         space.show_gizmo_object_rotate = True
         space.show_gizmo_tool = True
     
-    # transform operator must be executed before modal
-    # handler is added, otherwise it will block events    
+class BONE_OT_GRZ(bpy.types.Operator):
+    bl_idname = "bone.grz"
+    bl_label = "Gizmo Rotate Z"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    #@classmethod
+    #def poll(cls, context):
+    #    return context.mode == 'POSE'
+
+    def execute(self, context):
+        bpy.ops.object.mode_set(mode='EDIT')
+        bone = context.selected_editable_bones[:][0]
+        armature = bone.id_data
+        side = ['arm', 'hand', 'wrist'] 
+        front = ['thigh', 'shin', 'knee'] 
+        names = [o.name for o in armature.edit_bones]
+        arms = [b for b in names if any(a in b for a in side)]
+        legs = [b for b in names if any(a in b for a in front)]
+        for bone in armature.edit_bones:
+            bone.select = True
+            if bone.name in arms:
+                bpy.ops.armature.calculate_roll(type='GLOBAL_NEG_Z', axis_flip=False, axis_only=False)
+            if bone.name in legs:
+                bpy.ops.armature.calculate_roll(type='GLOBAL_POS_Z', axis_flip=False, axis_only=False)
+            #if fnmatch.fnmatchcase(bone.name, "something"): 
+            #    armature.edit_bones.remove(bone)
+         
+        bpy.ops.object.mode_set(mode='POSE')   
+        return {"FINISHED"}
+        
 class Revoltech(bpy.types.Panel):
     """Creates a Panel in the Object properties window"""
     bl_label = "Display Data"
@@ -68,6 +87,7 @@ class Revoltech(bpy.types.Panel):
     bl_region_type = 'UI'
     #bl_context = "bone"
 
+        
     @classmethod
     def poll(cls, context):
         return context.active_pose_bone is not None
@@ -81,8 +101,6 @@ class Revoltech(bpy.types.Panel):
         active_bone = context.active_bone
         armature = bone.id_data
         edit_bone = armature.data.edit_bones.active
-        #debone = Matrix([[1,0,0,0],[0,0,-1,0], [0,1,0,0],[0,0,0,1]]) #because bones are wacky
-        #m = armature.matrix_world @ bone.matrix @ debone
 
         q = get_pose_bone_matrix(bone).to_quaternion()
 
@@ -98,6 +116,9 @@ class Revoltech(bpy.types.Panel):
         row.label(text="x is %.2f" % x)
         row.label(text="y is %.2f" % y)
         row.label(text="z is %.2f" % z)
+        
+        row = layout.row()
+        layout.operator('bone.grz', text='Revo Rig')
         
         lock(self, context, x, y, z)
         
@@ -117,9 +138,11 @@ def register():
     # add a handler to make the area "live" without mouse over
     bpy.app.handlers.render_post.append(prop_redraw)
     bpy.utils.register_class(Revoltech)
+    bpy.utils.register_class(BONE_OT_GRZ)
 
 def unregister():
     bpy.utils.unregister_class(Revoltech)
+    bpy.utils.unregister_class(BONE_OT_GRZ)
 
 if __name__ == "__main__":
     register()
