@@ -31,18 +31,28 @@ def getRoll(bone):
     return roll
 
 def lock(self, context, x, y, z):
-    delta = float(0.2)
+    zdelta = float(0.2)
+    xdelta = float(0.1)
     bone = context.active_pose_bone
     q = get_pose_bone_matrix(bone).to_quaternion()
     orientation = bpy.context.scene.transform_orientation_slots[0].type
     
     if orientation == 'LOCAL':
-        lock = (-1*delta) <= z <= delta
-        bone.lock_rotation[1] = False # y
-        if lock:
+        print ("orientation: %s " % bone["BONE_ORIENTATION"])
+        if bone["BONE_ORIENTATION"] == 'ACTIVE':
+            lock = (-1*zdelta) <= z <= zdelta
+            bone.lock_rotation[1] = False # y
+            if lock:
+                bone.lock_rotation[0] = False # x
+            else:
+                bone.lock_rotation[0] = True # x
+        if bone["BONE_ORIENTATION"] == 'GLOBAL_POS_Z':
+            lock = float(0.7)-xdelta <= x <= float(0.7)+xdelta or (-1*float(0.7))-xdelta <= x <= (-1*float(0.7))+xdelta
             bone.lock_rotation[0] = False # x
-        else:
-            bone.lock_rotation[0] = True # x
+            if lock:
+                bone.lock_rotation[1] = False # y
+            else:
+                bone.lock_rotation[1] = True # y
                 
     space = context.space_data
     if not space.show_gizmo:
