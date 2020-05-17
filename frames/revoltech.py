@@ -1,6 +1,7 @@
 import bpy
 from math import pi, sqrt, degrees, atan, radians
 from mathutils import Matrix
+from copy import deepcopy
 
 bl_info = {
     "name": "Revoltech Joint",
@@ -48,6 +49,16 @@ def lock(self, context, x, y, z):
         space.show_gizmo = True
         space.show_gizmo_object_rotate = True
         space.show_gizmo_tool = True
+
+def set_prop(ob, name, value):
+    ob[name] = value
+
+ 
+
+def getProps(ob):
+    names = list(set(ob.keys()) - set(('cycles_visibility', '_RNA_UI')))
+    values = [(name, ob[name]) for name in names]
+    return values
     
 class BONE_OT_GRZ(bpy.types.Operator):
     bl_idname = "bone.grz"
@@ -61,22 +72,60 @@ class BONE_OT_GRZ(bpy.types.Operator):
     def execute(self, context):
         bpy.ops.object.mode_set(mode='EDIT')
         bone = context.selected_editable_bones[:][0]
+        bone_orientation = 'ACTIVE'
+        bone_revo = 'SIDE'
+        active_bonename = deepcopy(bone.name)
         armature = bone.id_data
-        side = ['arm', 'hand', 'wrist'] 
+        active_armname = deepcopy(armature.name)
+        side = ['arm'] 
         front = ['thigh', 'shin', 'knee'] 
         names = [o.name for o in armature.edit_bones]
         arms = [b for b in names if any(a in b for a in side)]
         legs = [b for b in names if any(a in b for a in front)]
-        for bone in armature.edit_bones:
+        for name in arms:
+            bone_orientation = 'ACTIVE'
+            bone_revo = 'SIDE'
+            bpy.ops.object.mode_set(mode='EDIT')
+            bone = context.selected_editable_bones[:][0]
+            armature = bone.id_data
+            bpy.ops.armature.select_all(action='DESELECT')
+            bone = armature.edit_bones[active_bonename]
+            print ("active: %s" % active_bonename)
+            bone.select = False
+            bone = armature.edit_bones[name]
             bone.select = True
-            if bone.name in arms:
-                bpy.ops.armature.calculate_roll(type='GLOBAL_NEG_Z', axis_flip=False, axis_only=False)
-            if bone.name in legs:
-                bpy.ops.armature.calculate_roll(type='GLOBAL_POS_Z', axis_flip=False, axis_only=False)
-            #if fnmatch.fnmatchcase(bone.name, "something"): 
-            #    armature.edit_bones.remove(bone)
-         
-        bpy.ops.object.mode_set(mode='POSE')   
+            bone = armature.edit_bones[active_bonename]
+            bone.select = True
+            if len(context.selected_editable_bones[:]) > 1:
+                print("1 %s" % context.selected_editable_bones[:][0].name)
+                print("2 %s" % context.selected_editable_bones[:][1].name)
+            #bpy.ops.object.mode_set(mode='POSE')
+            #bpy.ops.pose.armature_apply(selected=True)
+            #bpy.ops.object.mode_set(mode='EDIT')
+            if name != active_bonename:
+                if "lower" in name or "fore" in name:
+                    bone_orientation = 'GLOBAL_POS_Z'
+                    bone_revo = 'SIDE'
+                    armature.edit_bones[name]["BONE_ORIENTATION"] = bone_orientation
+                    armature.edit_bones[name]["BONE_REVO"] = bone_revo
+                    bone = armature.edit_bones[active_bonename]
+                    bone.select = False
+                    bpy.ops.armature.calculate_roll(type='GLOBAL_POS_Z', axis_flip=False, axis_only=True)
+                else:
+                    bone_orientation = 'ACTIVE'
+                    bone_revo = 'SIDE'
+                    armature.edit_bones[name]["BONE_ORIENTATION"] = bone_orientation
+                    armature.edit_bones[name]["BONE_REVO"] = bone_revo
+                    bpy.ops.armature.calculate_roll(type='ACTIVE', axis_flip=True, axis_only=True)   
+            bpy.ops.armature.select_all(action='DESELECT')
+            bone = armature.edit_bones[name]
+            bone.select = True
+            bpy.ops.object.mode_set(mode='POSE')
+            posebone = bpy.data.objects[active_armname].pose.bones[name]
+            print ("pb: %s" % posebone.name)
+            posebone["BONE_ORIENTATION"] = bone_orientation
+            posebone["BONE_REVO"] = bone_revo
+            
         return {"FINISHED"}
         
 class Revoltech(bpy.types.Panel):
