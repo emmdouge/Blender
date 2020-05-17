@@ -38,7 +38,7 @@ def lock(self, context, x, y, z):
     orientation = bpy.context.scene.transform_orientation_slots[0].type
     
     if orientation == 'LOCAL':
-        print ("orientation: %s " % bone["BONE_ORIENTATION"])
+        #print ("orientation: %s " % bone["BONE_ORIENTATION"])
         if bone["BONE_ORIENTATION"] == 'ACTIVE':
             if bone["BONE_REVO"] == 'SIDE':
                 lock = (-1*zdelta) <= z <= zdelta
@@ -67,20 +67,10 @@ def lock(self, context, x, y, z):
         space.show_gizmo = True
         space.show_gizmo_object_rotate = True
         space.show_gizmo_tool = True
-
-def set_prop(ob, name, value):
-    ob[name] = value
-
- 
-
-def getProps(ob):
-    names = list(set(ob.keys()) - set(('cycles_visibility', '_RNA_UI')))
-    values = [(name, ob[name]) for name in names]
-    return values
     
-class BONE_OT_GRZ(bpy.types.Operator):
-    bl_idname = "bone.grz"
-    bl_label = "Gizmo Rotate Z"
+class BONE_OT_REVOACTIVE(bpy.types.Operator):
+    bl_idname = "bone.revoactive"
+    bl_label = "Revo Rig Active"
     bl_options = {'REGISTER', 'UNDO'}
     
     #@classmethod
@@ -216,7 +206,7 @@ class Revoltech(bpy.types.Panel):
         row.label(text="z is %.2f" % z)
         
         row = layout.row()
-        layout.operator('bone.grz', text='Revo Rig')
+        layout.operator('bone.revoactive', text='Revo Rig Active')
         
         lock(self, context, x, y, z)
         
@@ -236,11 +226,11 @@ def register():
     # add a handler to make the area "live" without mouse over
     bpy.app.handlers.render_post.append(prop_redraw)
     bpy.utils.register_class(Revoltech)
-    bpy.utils.register_class(BONE_OT_GRZ)
+    bpy.utils.register_class(BONE_OT_REVOACTIVE)
 
 def unregister():
     bpy.utils.unregister_class(Revoltech)
-    bpy.utils.unregister_class(BONE_OT_GRZ)
+    bpy.utils.unregister_class(BONE_OT_REVOACTIVE)
 
 if __name__ == "__main__":
     register()
