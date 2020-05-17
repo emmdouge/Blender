@@ -32,7 +32,7 @@ def getRoll(bone):
 
 def lock(self, context, x, y, z):
     zdelta = float(0.2)
-    xdelta = float(0.1)
+    xdelta = float(0.15)
     bone = context.active_pose_bone
     q = get_pose_bone_matrix(bone).to_quaternion()
     orientation = bpy.context.scene.transform_orientation_slots[0].type
@@ -40,12 +40,20 @@ def lock(self, context, x, y, z):
     if orientation == 'LOCAL':
         print ("orientation: %s " % bone["BONE_ORIENTATION"])
         if bone["BONE_ORIENTATION"] == 'ACTIVE':
-            lock = (-1*zdelta) <= z <= zdelta
-            bone.lock_rotation[1] = False # y
-            if lock:
-                bone.lock_rotation[0] = False # x
-            else:
-                bone.lock_rotation[0] = True # x
+            if bone["BONE_REVO"] == 'SIDE':
+                lock = (-1*zdelta) <= z <= zdelta
+                bone.lock_rotation[1] = False # y
+                if lock:
+                    bone.lock_rotation[0] = False # x
+                else:
+                    bone.lock_rotation[0] = True # x
+            if bone["BONE_REVO"] == 'FRONT':
+                lock = float(0.7)-xdelta <= y <= float(0.7)+xdelta or (-1*float(0.7))-xdelta <= y <= (-1*float(0.7))+xdelta
+                bone.lock_rotation[0] = False # y
+                if lock:
+                    bone.lock_rotation[2] = False # z
+                else:
+                    bone.lock_rotation[2] = True # z
         if bone["BONE_ORIENTATION"] == 'GLOBAL_POS_Z':
             lock = float(0.7)-xdelta <= x <= float(0.7)+xdelta or (-1*float(0.7))-xdelta <= x <= (-1*float(0.7))+xdelta
             bone.lock_rotation[0] = False # x
@@ -124,6 +132,37 @@ class BONE_OT_GRZ(bpy.types.Operator):
                 else:
                     bone_orientation = 'ACTIVE'
                     bone_revo = 'SIDE'
+                    armature.edit_bones[name]["BONE_ORIENTATION"] = bone_orientation
+                    armature.edit_bones[name]["BONE_REVO"] = bone_revo
+                    bpy.ops.armature.calculate_roll(type='ACTIVE', axis_flip=True, axis_only=True)   
+            bpy.ops.armature.select_all(action='DESELECT')
+            bone = armature.edit_bones[name]
+            bone.select = True
+            bpy.ops.object.mode_set(mode='POSE')
+            posebone = bpy.data.objects[active_armname].pose.bones[name]
+            print ("pb: %s" % posebone.name)
+            posebone["BONE_ORIENTATION"] = bone_orientation
+            posebone["BONE_REVO"] = bone_revo
+        for name in legs:
+            bone_orientation = 'ACTIVE'
+            bone_revo = 'FRONT'
+            bpy.ops.object.mode_set(mode='EDIT')
+            bone = context.selected_editable_bones[:][0]
+            armature = bone.id_data
+            bpy.ops.armature.select_all(action='DESELECT')
+            bone = armature.edit_bones[active_bonename]
+            print ("active: %s" % active_bonename)
+            bone.select = False
+            bone = armature.edit_bones[name]
+            bone.select = True
+            bone = armature.edit_bones[active_bonename]
+            bone.select = True
+            if len(context.selected_editable_bones[:]) > 1:
+                print("1 %s" % context.selected_editable_bones[:][0].name)
+                print("2 %s" % context.selected_editable_bones[:][1].name)
+            if name != active_bonename:
+                    bone_orientation = 'ACTIVE'
+                    bone_revo = 'FRONT'
                     armature.edit_bones[name]["BONE_ORIENTATION"] = bone_orientation
                     armature.edit_bones[name]["BONE_REVO"] = bone_revo
                     bpy.ops.armature.calculate_roll(type='ACTIVE', axis_flip=True, axis_only=True)   
