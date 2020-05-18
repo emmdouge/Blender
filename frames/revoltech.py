@@ -164,7 +164,10 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
             print ("pb: %s" % posebone.name)
             posebone["BONE_ORIENTATION"] = bone_orientation
             posebone["BONE_REVO"] = bone_revo
-            
+        
+        bpy.ops.pose.armature_apply()
+        bpy.ops.bone.revorest()
+        #bpy.ops.bone.revorest('INVOKE_DEFAULT')
         return {"FINISHED"}
         
 class Revoltech(bpy.types.Panel):
@@ -179,6 +182,9 @@ class Revoltech(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         return context.active_pose_bone is not None
+        
+    def execute(self, context):
+        bpy.ops.bone.revorest('INVOKE_DEFAULT')
 
     def draw(self, context):
         layout = self.layout
@@ -204,6 +210,9 @@ class Revoltech(bpy.types.Panel):
         row.label(text="x is %.2f" % x)
         row.label(text="y is %.2f" % y)
         row.label(text="z is %.2f" % z)
+        row = layout.row()
+        current_tool = bpy.context.workspace.tools.from_space_view3d_mode("POSE", create=False).idname
+        row.label(text="ct is %s" % current_tool)
         
         row = layout.row()
         layout.operator('bone.revoactive', text='Revo Rig Active')
@@ -211,7 +220,70 @@ class Revoltech(bpy.types.Panel):
         lock(self, context, x, y, z)
         
         bpy.context.area.tag_redraw()
+        
+def gen_C_dict(context, win, area_type='VIEW_3D'):
 
+    C_dict = context.copy()
+
+    for area in win.screen.areas:
+        if area.type == area_type:
+            for region in area.regions:
+                if region.type == 'WINDOW':
+                    break
+            for space in area.spaces:
+                if space.type == area_type:
+                    region_data = None
+                    if area_type == 'VIEW_3D':
+                        region_data = space.region_3d
+                    break
+            break
+    
+    C_dict.update(
+        area=area,
+        region=region,
+        region_data=region_data,
+        screen=win.screen,
+        space_data=space)
+
+    return C_dict
+    
+class BONE_OT_APPLYREST(bpy.types.Operator):
+    bl_idname = "bone.revorest"
+    bl_label = "Revo Apply as Rest Pose"
+        
+    def modal(self, context, evt):
+        if context.mode == 'POSE' and context.active_pose_bone is not None:
+            override = bpy.context.copy()
+            active_armname = context.active_pose_bone.id_data.name
+            active_bonename = context.active_pose_bone.name
+            #print("%s" % context.area)
+            #print("evtTy: %s" % evt.type)
+            #print("evt: %s" % evt.value)
+            if evt.type == 'INBETWEEN_MOUSEMOVE':
+                if evt.value == 'RELEASE':
+                    rig = bpy.data.objects[active_armname]
+                    for obj in bpy.data.objects:
+                        if (obj.type == 'MESH' and rig in [m.object for m in obj.modifiers if m.type == 'ARMATURE']):
+                            bpy.context.view_layer.objects.active = obj
+                            m = [m for m in obj.modifiers if m.type == 'ARMATURE'][0]
+                            bpy.ops.object.modifier_copy(modifier=m.name)
+                            bpy.ops.object.modifier_apply(apply_as='DATA', modifier=m.name)
+                    print("armature applied!!!")
+                    bpy.ops.pose.armature_apply(override)
+                    bpy.context.view_layer.objects.active = rig
+                    bpy.ops.object.mode_set(mode='POSE')
+                    bpy.context.view_layer.update()
+        return {'PASS_THROUGH'}
+        
+    def execute(self, context):
+        context.window_manager.modal_handler_add(self)
+        print("invoke")
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        context.window_manager.modal_handler_add(self)
+        print("invoke")
+        return {'RUNNING_MODAL'}
         
 def prop_redraw(scene):
     for area in bpy.context.screen.areas:
@@ -219,6 +291,9 @@ def prop_redraw(scene):
             #printf ("active space: %s" % area.spaces.active.context)
             if area.spaces.active.context == 'BONE':
                 area.tag_redraw()
+        
+def apply_pose(scene):
+    print("render")
 
 def register():
     #clear handlers for testing
@@ -227,10 +302,13 @@ def register():
     bpy.app.handlers.render_post.append(prop_redraw)
     bpy.utils.register_class(Revoltech)
     bpy.utils.register_class(BONE_OT_REVOACTIVE)
+    bpy.utils.register_class(BONE_OT_APPLYREST)
 
 def unregister():
     bpy.utils.unregister_class(Revoltech)
     bpy.utils.unregister_class(BONE_OT_REVOACTIVE)
+    bpy.utils.unregister_class(BONE_OT_APPLYREST)
 
 if __name__ == "__main__":
     register()
+    
