@@ -214,11 +214,13 @@ def clearanim_obj(ob):
         for c in fc:
             if c.data_path.startswith("hide"):
                 fc.remove(c)
+                
 def animate_obj(ob, START_FRAME, DURATION, LOOPS):
     #stores the previous interpolation default
     keyinter = bpy.context.preferences.edit.keyframe_new_interpolation_type
     
     clearanim_obj(ob)
+    ob.animation_data_create()
         
     #creates a new action for the object, if needed
     actionname = "RevoAnim for %s"% ob.name
