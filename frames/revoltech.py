@@ -173,10 +173,22 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
         #bpy.ops.bone.revorest('INVOKE_DEFAULT')
         return {"FINISHED"}
 
+class BONE_OT_REVOFRAMECLEAR(bpy.types.Operator):
+    bl_idname = "bone.revoframeclear"
+    bl_label = "Revo Frame Clear"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        rig = bpy.data.objects[context.active_pose_bone.id_data.name]
+        for ob in bpy.data.objects:
+            if (ob.type == 'MESH' and rig in [m.object for m in ob.modifiers if m.type == 'ARMATURE']):
+                clearanim_obj(ob)
+        clearanim_obj(rig)
+        return {"FINISHED"}
     
 class BONE_OT_REVOFRAME(bpy.types.Operator):
     bl_idname = "bone.revoframe"
-    bl_label = "Revo Frame"
+    bl_label = "Revo Frame Insert"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
@@ -184,10 +196,6 @@ class BONE_OT_REVOFRAME(bpy.types.Operator):
         DURATION = context.scene.anim_dpf
         START_FRAME = bpy.context.scene.frame_current
         LOOPS = 1
-        NUM_PLANES = 1
-        
-        #we are going to animate the layer visibility and render-ability.
-
         
         #sets the new interpolation type to linear
         bpy.context.preferences.edit.keyframe_new_interpolation_type = "CONSTANT"
@@ -195,16 +203,22 @@ class BONE_OT_REVOFRAME(bpy.types.Operator):
         rig = bpy.data.objects[context.active_pose_bone.id_data.name]
         for ob in bpy.data.objects:
             if (ob.type == 'MESH' and rig in [m.object for m in ob.modifiers if m.type == 'ARMATURE']):
-                animate_obj(ob, START_FRAME, DURATION, LOOPS) 
-        animate_obj(rig, START_FRAME, DURATION, LOOPS) 
+                animate_obj(ob, START_FRAME, DURATION, LOOPS)
+        animate_obj(rig, START_FRAME, DURATION, LOOPS)
+        bpy.context.view_layer.update()
         return {"FINISHED"}
 
+def clearanim_obj(ob):
+    if ob.animation_data is not None:
+        fc = ob.animation_data.action.fcurves
+        for c in fc:
+            if c.data_path.startswith("hide"):
+                fc.remove(c)
 def animate_obj(ob, START_FRAME, DURATION, LOOPS):
     #stores the previous interpolation default
     keyinter = bpy.context.preferences.edit.keyframe_new_interpolation_type
     
-    ob.animation_data_clear()
-    ob.animation_data_create()
+    clearanim_obj(ob)
         
     #creates a new action for the object, if needed
     actionname = "RevoAnim for %s"% ob.name
@@ -236,8 +250,8 @@ def animate_obj(ob, START_FRAME, DURATION, LOOPS):
     
     fcu.keyframe_points[0].interpolation = "CONSTANT"
     fcu2.keyframe_points[0].interpolation = "CONSTANT"   
-    fcu.keyframe_points[0].co = START_FRAME - 1, hide
-    fcu2.keyframe_points[0].co = START_FRAME - 1, hide
+    fcu.keyframe_points[0].co = 0, hide
+    fcu2.keyframe_points[0].co = 0, hide
 
     pointX = 1
     loopcount = 0
@@ -248,7 +262,7 @@ def animate_obj(ob, START_FRAME, DURATION, LOOPS):
         fcu2.keyframe_points[pointX].interpolation = "CONSTANT"
         fcu2.keyframe_points[pointX+1].interpolation = "CONSTANT"       
 
-        planeX = 1*(DURATION)
+        print("sf: %s" % START_FRAME)
         #sets the first point: hide
         fcu.keyframe_points[pointX].co = START_FRAME * (loopcount+1), show
         fcu2.keyframe_points[pointX].co = START_FRAME * (loopcount+1), show
@@ -315,6 +329,8 @@ class Revoltech(bpy.types.Panel):
         
         row = layout.row()
         layout.operator('bone.revoframe', text='Insert Frame')
+        row = layout.row()
+        layout.operator('bone.revoframeclear', text='Clear Frame')
         
         lock(self, context, x, y, z)
         
@@ -401,12 +417,14 @@ def register():
     bpy.app.handlers.render_post.append(prop_redraw)
     bpy.utils.register_class(Revoltech)
     bpy.utils.register_class(BONE_OT_REVOFRAME)
+    bpy.utils.register_class(BONE_OT_REVOFRAMECLEAR)
     bpy.utils.register_class(BONE_OT_REVOACTIVE)
     bpy.utils.register_class(BONE_OT_APPLYREST)
 
 def unregister():
     bpy.utils.unregister_class(Revoltech)
     bpy.utils.unregister_class(BONE_OT_REVOFRAME)
+    bpy.utils.unregister_class(BONE_OT_REVOFRAMECLEAR)
     bpy.utils.unregister_class(BONE_OT_REVOACTIVE)
     bpy.utils.unregister_class(BONE_OT_APPLYREST)
 
