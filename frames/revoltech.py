@@ -2,6 +2,13 @@ import bpy
 from math import pi, sqrt, degrees, atan, radians
 from mathutils import Matrix
 from copy import deepcopy
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       EnumProperty,
+                       IntProperty,
+                       FloatProperty,
+                       CollectionProperty,
+                       )
 
 bl_info = {
     "name": "Revoltech Joint",
@@ -72,10 +79,6 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
     bl_idname = "bone.revoactive"
     bl_label = "Revo Rig Active"
     bl_options = {'REGISTER', 'UNDO'}
-    
-    #@classmethod
-    #def poll(cls, context):
-    #    return context.mode == 'POSE'
 
     def execute(self, context):
         bpy.ops.object.mode_set(mode='EDIT')
@@ -169,7 +172,97 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
         bpy.ops.bone.revorest()
         #bpy.ops.bone.revorest('INVOKE_DEFAULT')
         return {"FINISHED"}
+
+    
+class BONE_OT_REVOFRAME(bpy.types.Operator):
+    bl_idname = "bone.revoframe"
+    bl_label = "Revo Frame"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
         
+        DURATION = context.scene.anim_dpf
+        START_FRAME = bpy.context.scene.frame_current
+        LOOPS = 1
+        NUM_PLANES = 1
+        
+        #we are going to animate the layer visibility and render-ability.
+
+        
+        #sets the new interpolation type to linear
+        bpy.context.preferences.edit.keyframe_new_interpolation_type = "CONSTANT"
+
+        rig = bpy.data.objects[context.active_pose_bone.id_data.name]
+        for ob in bpy.data.objects:
+            if (ob.type == 'MESH' and rig in [m.object for m in ob.modifiers if m.type == 'ARMATURE']):
+                animate_obj(ob, START_FRAME, DURATION, LOOPS) 
+        animate_obj(rig, START_FRAME, DURATION, LOOPS) 
+        return {"FINISHED"}
+
+def animate_obj(ob, START_FRAME, DURATION, LOOPS):
+    #stores the previous interpolation default
+    keyinter = bpy.context.preferences.edit.keyframe_new_interpolation_type
+    
+    ob.animation_data_clear()
+    ob.animation_data_create()
+        
+    #creates a new action for the object, if needed
+    actionname = "RevoAnim for %s"% ob.name
+    if not actionname in bpy.data.actions:
+        ob.animation_data.action = bpy.data.actions.new(actionname)
+    else:
+        ob.animation_data.action = bpy.data.actions[actionname]
+    
+    #add a new fcurve for the "hide" property 
+    if not "hide_viewport" in [ x.data_path for x in ob.animation_data.action.fcurves ]:
+        fcu = ob.animation_data.action.fcurves.new(data_path="hide_viewport")
+    else:
+        fcu = [ x for x in ob.animation_data.action.fcurves if x.data_path == 'hide_viewport' ][0]
+        
+    #add a new fcurve for the "hide render" property  
+    if not "hide_render" in [ x.data_path for x in ob.animation_data.action.fcurves ]:
+        fcu2 = ob.animation_data.action.fcurves.new(data_path="hide_render")
+    else:
+        fcu2 = [ x for x in ob.animation_data.action.fcurves if x.data_path == 'hide_render' ][0]
+    
+    #add 2 points, one for hide, one for hide render
+    fcu.keyframe_points.add(1)
+    fcu2.keyframe_points.add(1)
+    fcu.keyframe_points.add(2 * LOOPS)
+    fcu2.keyframe_points.add(2 * LOOPS)
+
+    hide = 1
+    show = 0
+    
+    fcu.keyframe_points[0].interpolation = "CONSTANT"
+    fcu2.keyframe_points[0].interpolation = "CONSTANT"   
+    fcu.keyframe_points[0].co = START_FRAME - 1, hide
+    fcu2.keyframe_points[0].co = START_FRAME - 1, hide
+
+    pointX = 1
+    loopcount = 0
+    while pointX < (2*LOOPS):
+        #set interpolation to constant
+        fcu.keyframe_points[pointX].interpolation = "CONSTANT"
+        fcu.keyframe_points[pointX+1].interpolation = "CONSTANT"
+        fcu2.keyframe_points[pointX].interpolation = "CONSTANT"
+        fcu2.keyframe_points[pointX+1].interpolation = "CONSTANT"       
+
+        planeX = 1*(DURATION)
+        #sets the first point: hide
+        fcu.keyframe_points[pointX].co = START_FRAME * (loopcount+1), show
+        fcu2.keyframe_points[pointX].co = START_FRAME * (loopcount+1), show
+
+        #how long to show frame
+        fcu.keyframe_points[pointX+1].co = fcu.keyframe_points[pointX].co.x + DURATION, hide
+        fcu2.keyframe_points[pointX+1].co = fcu2.keyframe_points[pointX].co.x + DURATION, hide
+
+        pointX += 2
+        loopcount += 1
+
+    #recovers the previous interpolation setting
+    bpy.context.preferences.edit.keyframe_new_interpolation_type = keyinter
+    
 class Revoltech(bpy.types.Panel):
     """Creates a Panel in the Object properties window"""
     bl_label = "Display Data"
@@ -177,8 +270,8 @@ class Revoltech(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     #bl_context = "bone"
-
-        
+    bpy.types.Scene.anim_dpf = IntProperty(name="DPF", min=1, soft_min=1, default=6, description="In an animation each frame will be shown this number of frames.")
+    
     @classmethod
     def poll(cls, context):
         return context.active_pose_bone is not None
@@ -216,6 +309,12 @@ class Revoltech(bpy.types.Panel):
         
         row = layout.row()
         layout.operator('bone.revoactive', text='Revo Rig Active')
+        
+        box = layout.box()
+        box.prop(context.scene, "anim_dpf")
+        
+        row = layout.row()
+        layout.operator('bone.revoframe', text='Insert Frame')
         
         lock(self, context, x, y, z)
         
@@ -301,11 +400,13 @@ def register():
     # add a handler to make the area "live" without mouse over
     bpy.app.handlers.render_post.append(prop_redraw)
     bpy.utils.register_class(Revoltech)
+    bpy.utils.register_class(BONE_OT_REVOFRAME)
     bpy.utils.register_class(BONE_OT_REVOACTIVE)
     bpy.utils.register_class(BONE_OT_APPLYREST)
 
 def unregister():
     bpy.utils.unregister_class(Revoltech)
+    bpy.utils.unregister_class(BONE_OT_REVOFRAME)
     bpy.utils.unregister_class(BONE_OT_REVOACTIVE)
     bpy.utils.unregister_class(BONE_OT_APPLYREST)
 
