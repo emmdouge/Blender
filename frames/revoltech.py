@@ -20,7 +20,20 @@ bl_info = {
                    "Locks rotation based on current rotation.",
     "warning": "",
     "category": "Animation"}
+    
+active_modals = set()
 
+def callback(func):
+    def modal_wrapper(self, context, event):
+        cls = type(self)
+        _ret, = ret = func(self, context, event)
+        if _ret in {'RUNNING_MODAL', 'PASS_THROUGH'}:
+            active_modals.add(cls)
+        elif _ret in {'FINISHED', 'CANCELLED'}:
+            active_modals.discard(cls)
+        return ret
+    return modal_wrapper
+    
 def get_pose_bone_matrix(pose_bone):
     local_matrix = pose_bone.matrix_channel.to_3x3()
     if pose_bone.parent is None:
@@ -75,9 +88,9 @@ def lock(self, context, x, y, z):
         space.show_gizmo_object_rotate = True
         space.show_gizmo_tool = True
     
-class BONE_OT_REVOACTIVE(bpy.types.Operator):
-    bl_idname = "bone.revoactive"
-    bl_label = "Revo Rig Active"
+class BONE_OT_REVORIG(bpy.types.Operator):
+    bl_idname = "bone.revorig"
+    bl_label = "Revo Rig"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -119,6 +132,7 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
                     bone_revo = 'SIDE'
                     armature.edit_bones[name]["BONE_ORIENTATION"] = bone_orientation
                     armature.edit_bones[name]["BONE_REVO"] = bone_revo
+                    armature.edit_bones[name]["REVO_ACTIVE"] = 'OFF'
                     bone = armature.edit_bones[active_bonename]
                     bone.select = False
                     bpy.ops.armature.calculate_roll(type='GLOBAL_POS_Z', axis_flip=False, axis_only=True)
@@ -127,6 +141,7 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
                     bone_revo = 'SIDE'
                     armature.edit_bones[name]["BONE_ORIENTATION"] = bone_orientation
                     armature.edit_bones[name]["BONE_REVO"] = bone_revo
+                    armature.edit_bones[name]["REVO_ACTIVE"] = 'OFF'
                     bpy.ops.armature.calculate_roll(type='ACTIVE', axis_flip=True, axis_only=True)   
             bpy.ops.armature.select_all(action='DESELECT')
             bone = armature.edit_bones[name]
@@ -136,6 +151,7 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
             print ("pb: %s" % posebone.name)
             posebone["BONE_ORIENTATION"] = bone_orientation
             posebone["BONE_REVO"] = bone_revo
+            posebone["REVO_ACTIVE"] = 'OFF'
         for name in legs:
             bone_orientation = 'ACTIVE'
             bone_revo = 'FRONT'
@@ -158,6 +174,7 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
                     bone_revo = 'FRONT'
                     armature.edit_bones[name]["BONE_ORIENTATION"] = bone_orientation
                     armature.edit_bones[name]["BONE_REVO"] = bone_revo
+                    armature.edit_bones[name]["REVO_ACTIVE"] = 'OFF'
                     bpy.ops.armature.calculate_roll(type='ACTIVE', axis_flip=True, axis_only=True)   
             bpy.ops.armature.select_all(action='DESELECT')
             bone = armature.edit_bones[name]
@@ -167,10 +184,75 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
             print ("pb: %s" % posebone.name)
             posebone["BONE_ORIENTATION"] = bone_orientation
             posebone["BONE_REVO"] = bone_revo
+            posebone["REVO_ACTIVE"] = 'OFF'
         
-        bpy.ops.pose.armature_apply()
-        bpy.ops.bone.revorest()
-        #bpy.ops.bone.revorest('INVOKE_DEFAULT')
+        bpy.ops.bone.revorest('INVOKE_DEFAULT')
+        return {"FINISHED"}
+        
+
+    
+class BONE_OT_REVOACTIVE(bpy.types.Operator):
+    bl_idname = "bone.revoactive"
+    bl_label = "Revo Active"
+    bl_options = {'REGISTER', 'UNDO'}
+    active: bpy.props.StringProperty()
+
+    def execute(self, context):
+        bpy.ops.object.mode_set(mode='EDIT')
+        bone = context.selected_editable_bones[:][0]
+        active_bonename = deepcopy(bone.name)
+        armature = bone.id_data
+        active_armname = deepcopy(armature.name)
+        side = ['arm'] 
+        front = ['thigh', 'shin', 'knee'] 
+        names = [o.name for o in armature.edit_bones]
+        arms = [b for b in names if any(a in b for a in side)]
+        legs = [b for b in names if any(a in b for a in front)]
+        for name in arms:
+            bpy.ops.object.mode_set(mode='EDIT')
+            bone = context.selected_editable_bones[:][0]
+            armature = bone.id_data
+            bpy.ops.armature.select_all(action='DESELECT')
+            bone = armature.edit_bones[active_bonename]
+            bone.select = False
+            bone = armature.edit_bones[name]
+            bone.select = True
+            armature.edit_bones[name]["REVO_ACTIVE"] = self.active
+            bpy.ops.object.mode_set(mode='POSE')
+            posebone = bpy.data.objects[active_armname].pose.bones[name]
+            posebone["REVO_ACTIVE"] = self.active
+        for name in legs:
+            bpy.ops.object.mode_set(mode='EDIT')
+            bone = context.selected_editable_bones[:][0]
+            armature = bone.id_data
+            bpy.ops.armature.select_all(action='DESELECT')
+            bone = armature.edit_bones[active_bonename]
+            bone.select = False
+            bone = armature.edit_bones[name]
+            bone.select = True
+            armature.edit_bones[name]["REVO_ACTIVE"] = self.active
+            bpy.ops.object.mode_set(mode='POSE')
+            posebone = bpy.data.objects[active_armname].pose.bones[name]
+            posebone["REVO_ACTIVE"] = self.active
+        
+
+        if context.mode == 'POSE' and context.active_pose_bone is not None and context.active_pose_bone["REVO_ACTIVE"] == 'ON':
+            override = bpy.context.copy()
+            active_armname = context.active_pose_bone.id_data.name
+            active_bonename = context.active_pose_bone.name
+            #print("%s" % context.area)
+            #print("evtTy: %s" % evt.type)
+            #print("evt: %s" % evt.value)
+            rig = bpy.data.objects[active_armname]
+            for obj in bpy.data.objects:
+                if (obj.type == 'MESH' and rig in [m.object for m in obj.modifiers if m.type == 'ARMATURE']):
+                    bpy.context.view_layer.objects.active = obj
+                    m = [m for m in obj.modifiers if m.type == 'ARMATURE'][0]
+                    bpy.ops.object.modifier_copy(modifier=m.name)
+                    bpy.ops.object.modifier_apply(apply_as='DATA', modifier=m.name)
+            bpy.ops.pose.armature_apply(override)
+            bpy.context.view_layer.objects.active = rig
+            bpy.ops.object.mode_set(mode='POSE')
         return {"FINISHED"}
 
 class BONE_OT_REVOFRAMECLEAR(bpy.types.Operator):
@@ -211,6 +293,33 @@ class BONE_OT_REVOFRAMEDUPE(bpy.types.Operator):
         bone = bpy.data.objects[active_armname].pose.bones[active_bonename].bone
         bone.select = True
         bpy.ops.bone.revoframeclear('INVOKE_DEFAULT')
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.armature.select_all(action='SELECT')
+        bpy.ops.object.mode_set(mode='POSE')
+        return {"FINISHED"}
+
+class BONE_OT_REVOFRAMEMESHDUPE(bpy.types.Operator):
+    bl_idname = "bone.revoframemeshdupe"
+    bl_label = "Revo Frame Dupe"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        active_bonename = context.active_pose_bone.name
+        active_armname = deepcopy(context.active_pose_bone.id_data.name)
+        
+        #print ("%s" % active_armname)
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
+        for ob in bpy.data.objects:
+            if (ob.type == 'MESH' and bpy.data.objects[active_armname] in [m.object for m in ob.modifiers if m.type == 'ARMATURE']):
+                ob.select_set(True)
+        bpy.data.objects[active_armname].select_set(True)
+        bpy.ops.object.duplicate()
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.mode_set(mode='POSE')
+        #print ("%s" % active_armname)
+        bone = bpy.data.objects[active_armname].pose.bones[active_bonename].bone
+        bone.select = True
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.armature.select_all(action='SELECT')
         bpy.ops.object.mode_set(mode='POSE')
@@ -353,7 +462,13 @@ class Revoltech(bpy.types.Panel):
         row.label(text="ct is %s" % current_tool)
         
         row = layout.row()
-        layout.operator('bone.revoactive', text='Revo Rig Active')
+        layout.operator('bone.revorig', text='Revo Rig')
+        row = layout.row()
+        layout.operator('bone.revoactive', text='Revo Active').active = 'ON'
+        row = layout.row()
+        layout.operator('bone.revoactive', text='Revo OFF').active = 'OFF'
+        row = layout.row()
+        layout.operator('bone.revoframemeshdupe', text='Dupe Armature')
         
         box = layout.box()
         box.prop(context.scene, "anim_dpf")
@@ -401,7 +516,8 @@ class BONE_OT_APPLYREST(bpy.types.Operator):
     bl_label = "Revo Apply as Rest Pose"
         
     def modal(self, context, evt):
-        if context.mode == 'POSE' and context.active_pose_bone is not None:
+        print("running")
+        if context.mode == 'POSE' and context.active_pose_bone is not None and context.active_pose_bone["REVO_ACTIVE"] == 'ON':
             override = bpy.context.copy()
             active_armname = context.active_pose_bone.id_data.name
             active_bonename = context.active_pose_bone.name
@@ -421,17 +537,33 @@ class BONE_OT_APPLYREST(bpy.types.Operator):
                     bpy.ops.pose.armature_apply(override)
                     bpy.context.view_layer.objects.active = rig
                     bpy.ops.object.mode_set(mode='POSE')
-                    bpy.context.view_layer.update()
+                    #bpy.context.view_layer.update()
         return {'PASS_THROUGH'}
         
-    def execute(self, context):
-        context.window_manager.modal_handler_add(self)
+    def invoke(self, context, event):
         print("invoke")
+        running = False
+        for cls in bpy.types.Operator.__subclasses__():
+            if hasattr(cls, "modal") and getattr(cls, "bl_idname") == "bone.revorest":
+                print("revo running")
+                running = True
+        if running == False:
+            context.window_manager.modal_handler_add(self)
+        else:
+            return {'FINISHED'}
         return {'RUNNING_MODAL'}
 
-    def invoke(self, context, event):
-        context.window_manager.modal_handler_add(self)
-        print("invoke")
+    def execute(self, context):
+        print("execute")
+        running = False
+        for cls in bpy.types.Operator.__subclasses__():
+            if hasattr(cls, "modal") and getattr(cls, "bl_idname") == "bone.revorest":
+                print("revo running")
+                running = True
+        if running == False:
+            context.window_manager.modal_handler_add(self)
+        else:
+            return {'FINISHED'}
         return {'RUNNING_MODAL'}
         
 def prop_redraw(scene):
@@ -440,9 +572,6 @@ def prop_redraw(scene):
             #printf ("active space: %s" % area.spaces.active.context)
             if area.spaces.active.context == 'BONE':
                 area.tag_redraw()
-        
-def apply_pose(scene):
-    print("render")
 
 def register():
     #clear handlers for testing
@@ -453,6 +582,8 @@ def register():
     bpy.utils.register_class(BONE_OT_REVOFRAMEINSERT)
     bpy.utils.register_class(BONE_OT_REVOFRAMECLEAR)
     bpy.utils.register_class(BONE_OT_REVOFRAMEDUPE)
+    #bpy.utils.register_class(BONE_OT_REVORIG)
+    bpy.utils.register_class(BONE_OT_REVOFRAMEMESHDUPE)
     bpy.utils.register_class(BONE_OT_REVOACTIVE)
     bpy.utils.register_class(BONE_OT_APPLYREST)
 
@@ -460,6 +591,8 @@ def unregister():
     bpy.utils.unregister_class(Revoltech)
     bpy.utils.unregister_class(BONE_OT_REVOFRAMEINSERT)
     bpy.utils.unregister_class(BONE_OT_REVOFRAMEDUPE)
+    bpy.utils.unregister_class(BONE_OT_REVOFRAMEMESHDUPE)
+    #bpy.utils.unregister_class(BONE_OT_REVORIG)
     bpy.utils.unregister_class(BONE_OT_REVOFRAMECLEAR)
     bpy.utils.unregister_class(BONE_OT_REVOACTIVE)
     bpy.utils.unregister_class(BONE_OT_APPLYREST)
