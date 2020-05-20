@@ -211,6 +211,9 @@ class BONE_OT_REVOFRAMEDUPE(bpy.types.Operator):
         bone = bpy.data.objects[active_armname].pose.bones[active_bonename].bone
         bone.select = True
         bpy.ops.bone.revoframeclear('INVOKE_DEFAULT')
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.armature.select_all(action='SELECT')
+        bpy.ops.object.mode_set(mode='POSE')
         return {"FINISHED"}
     
 class BONE_OT_REVOFRAMEINSERT(bpy.types.Operator):
