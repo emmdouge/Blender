@@ -193,7 +193,7 @@ class BONE_OT_REVOFRAMEDUPE(bpy.types.Operator):
     
     def execute(self, context):
     
-        bpy.ops.bone.revoframe('INVOKE_DEFAULT')
+        bpy.ops.bone.revoframeinsert('INVOKE_DEFAULT')
         active_bonename = context.active_pose_bone.name
         active_armname = deepcopy(context.active_pose_bone.id_data.name)
         
@@ -213,8 +213,8 @@ class BONE_OT_REVOFRAMEDUPE(bpy.types.Operator):
         bpy.ops.bone.revoframeclear('INVOKE_DEFAULT')
         return {"FINISHED"}
     
-class BONE_OT_REVOFRAME(bpy.types.Operator):
-    bl_idname = "bone.revoframe"
+class BONE_OT_REVOFRAMEINSERT(bpy.types.Operator):
+    bl_idname = "bone.revoframeinsert"
     bl_label = "Revo Frame Insert"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -291,7 +291,6 @@ def animate_obj(ob, START_FRAME, DURATION, LOOPS):
         fcu2.keyframe_points[pointX].interpolation = "CONSTANT"
         fcu2.keyframe_points[pointX+1].interpolation = "CONSTANT"       
 
-        print("sf: %s" % START_FRAME)
         #sets the first point: hide
         fcu.keyframe_points[pointX].co = START_FRAME * (loopcount+1), show
         fcu2.keyframe_points[pointX].co = START_FRAME * (loopcount+1), show
@@ -359,11 +358,12 @@ class Revoltech(bpy.types.Panel):
         row = layout.row()
         layout.operator('bone.revoframedupe', text='Revo Frame')
         row = layout.row()
-        layout.operator('bone.revoframe', text='Insert Frame')
+        layout.operator('bone.revoframeinsert', text='Insert Frame')
         row = layout.row()
         layout.operator('bone.revoframeclear', text='Clear Frame')
         
-        lock(self, context, x, y, z)
+        if "BONE_REVO" in context.active_pose_bone.keys():
+            lock(self, context, x, y, z)
         
         bpy.context.area.tag_redraw()
         
@@ -414,7 +414,7 @@ class BONE_OT_APPLYREST(bpy.types.Operator):
                             m = [m for m in obj.modifiers if m.type == 'ARMATURE'][0]
                             bpy.ops.object.modifier_copy(modifier=m.name)
                             bpy.ops.object.modifier_apply(apply_as='DATA', modifier=m.name)
-                    print("armature applied!!!")
+                    #print("armature applied!!!")
                     bpy.ops.pose.armature_apply(override)
                     bpy.context.view_layer.objects.active = rig
                     bpy.ops.object.mode_set(mode='POSE')
@@ -447,7 +447,7 @@ def register():
     # add a handler to make the area "live" without mouse over
     bpy.app.handlers.render_post.append(prop_redraw)
     bpy.utils.register_class(Revoltech)
-    bpy.utils.register_class(BONE_OT_REVOFRAME)
+    bpy.utils.register_class(BONE_OT_REVOFRAMEINSERT)
     bpy.utils.register_class(BONE_OT_REVOFRAMECLEAR)
     bpy.utils.register_class(BONE_OT_REVOFRAMEDUPE)
     bpy.utils.register_class(BONE_OT_REVOACTIVE)
@@ -455,7 +455,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(Revoltech)
-    bpy.utils.unregister_class(BONE_OT_REVOFRAME)
+    bpy.utils.unregister_class(BONE_OT_REVOFRAMEINSERT)
     bpy.utils.unregister_class(BONE_OT_REVOFRAMEDUPE)
     bpy.utils.unregister_class(BONE_OT_REVOFRAMECLEAR)
     bpy.utils.unregister_class(BONE_OT_REVOACTIVE)
