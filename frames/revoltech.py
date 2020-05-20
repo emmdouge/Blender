@@ -185,6 +185,33 @@ class BONE_OT_REVOFRAMECLEAR(bpy.types.Operator):
                 clearanim_obj(ob)
         clearanim_obj(rig)
         return {"FINISHED"}
+
+class BONE_OT_REVOFRAMEDUPE(bpy.types.Operator):
+    bl_idname = "bone.revoframedupe"
+    bl_label = "Revo Frame Dupe"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+    
+        bpy.ops.bone.revoframe('INVOKE_DEFAULT')
+        active_bonename = context.active_pose_bone.name
+        active_armname = deepcopy(context.active_pose_bone.id_data.name)
+        
+        #print ("%s" % active_armname)
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
+        for ob in bpy.data.objects:
+            if (ob.type == 'MESH' and bpy.data.objects[active_armname] in [m.object for m in ob.modifiers if m.type == 'ARMATURE']):
+                ob.select_set(True)
+        bpy.data.objects[active_armname].select_set(True)
+        bpy.ops.object.duplicate()
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.mode_set(mode='POSE')
+        #print ("%s" % active_armname)
+        bone = bpy.data.objects[active_armname].pose.bones[active_bonename].bone
+        bone.select = True
+        bpy.ops.bone.revoframeclear('INVOKE_DEFAULT')
+        return {"FINISHED"}
     
 class BONE_OT_REVOFRAME(bpy.types.Operator):
     bl_idname = "bone.revoframe"
@@ -330,6 +357,8 @@ class Revoltech(bpy.types.Panel):
         box.prop(context.scene, "anim_dpf")
         
         row = layout.row()
+        layout.operator('bone.revoframedupe', text='Revo Frame')
+        row = layout.row()
         layout.operator('bone.revoframe', text='Insert Frame')
         row = layout.row()
         layout.operator('bone.revoframeclear', text='Clear Frame')
@@ -420,12 +449,14 @@ def register():
     bpy.utils.register_class(Revoltech)
     bpy.utils.register_class(BONE_OT_REVOFRAME)
     bpy.utils.register_class(BONE_OT_REVOFRAMECLEAR)
+    bpy.utils.register_class(BONE_OT_REVOFRAMEDUPE)
     bpy.utils.register_class(BONE_OT_REVOACTIVE)
     bpy.utils.register_class(BONE_OT_APPLYREST)
 
 def unregister():
     bpy.utils.unregister_class(Revoltech)
     bpy.utils.unregister_class(BONE_OT_REVOFRAME)
+    bpy.utils.unregister_class(BONE_OT_REVOFRAMEDUPE)
     bpy.utils.unregister_class(BONE_OT_REVOFRAMECLEAR)
     bpy.utils.unregister_class(BONE_OT_REVOACTIVE)
     bpy.utils.unregister_class(BONE_OT_APPLYREST)
