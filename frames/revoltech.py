@@ -296,6 +296,9 @@ class BONE_OT_REVOFRAMEDUPE(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.armature.select_all(action='SELECT')
         bpy.ops.object.mode_set(mode='POSE')
+        DURATION = context.scene.anim_dpf
+        START_FRAME = bpy.context.scene.frame_current
+        bpy.context.scene.frame_set(START_FRAME+DURATION)
         return {"FINISHED"}
 
 class BONE_OT_REVOFRAMEMESHDUPE(bpy.types.Operator):
