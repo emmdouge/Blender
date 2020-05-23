@@ -204,7 +204,7 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
         armature = bone.id_data
         active_armname = deepcopy(armature.name)
         side = ['arm'] 
-        front = ['thigh', 'shin', 'knee'] 
+        front = ['thigh', 'shin', 'knee', 'leg'] 
         names = [o.name for o in armature.edit_bones]
         arms = [b for b in names if any(a in b for a in side)]
         legs = [b for b in names if any(a in b for a in front)]
@@ -236,23 +236,23 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
             posebone["REVO_ACTIVE"] = self.active
         
 
-        if context.mode == 'POSE' and context.active_pose_bone is not None and context.active_pose_bone["REVO_ACTIVE"] == 'ON':
-            override = bpy.context.copy()
-            active_armname = context.active_pose_bone.id_data.name
-            active_bonename = context.active_pose_bone.name
-            #print("%s" % context.area)
-            #print("evtTy: %s" % evt.type)
-            #print("evt: %s" % evt.value)
-            rig = bpy.data.objects[active_armname]
-            for obj in bpy.data.objects:
-                if (obj.type == 'MESH' and rig in [m.object for m in obj.modifiers if m.type == 'ARMATURE']):
-                    bpy.context.view_layer.objects.active = obj
-                    m = [m for m in obj.modifiers if m.type == 'ARMATURE'][0]
-                    bpy.ops.object.modifier_copy(modifier=m.name)
-                    bpy.ops.object.modifier_apply(apply_as='DATA', modifier=m.name)
-            bpy.ops.pose.armature_apply(override)
-            bpy.context.view_layer.objects.active = rig
-            bpy.ops.object.mode_set(mode='POSE')
+        #if context.mode == 'POSE' and context.active_pose_bone is not None and "REVO_ACTIVE" in context.active_pose_bone and context.active_pose_bone["REVO_ACTIVE"] == 'ON':
+        #    override = bpy.context.copy()
+        #    active_armname = context.active_pose_bone.id_data.name
+        #    active_bonename = context.active_pose_bone.name
+        #    #print("%s" % context.area)
+        #    #print("evtTy: %s" % evt.type)
+        #    #print("evt: %s" % evt.value)
+        #    rig = bpy.data.objects[active_armname]
+        #    for obj in bpy.data.objects:
+        #        if (obj.type == 'MESH' and rig in [m.object for m in obj.modifiers if m.type == 'ARMATURE']):
+        #            bpy.context.view_layer.objects.active = obj
+        #            m = [m for m in obj.modifiers if m.type == 'ARMATURE'][0]
+        #            bpy.ops.object.modifier_copy(modifier=m.name)
+        #            bpy.ops.object.modifier_apply(apply_as='DATA', modifier=m.name)
+        #    bpy.ops.pose.armature_apply(override)
+        #    bpy.context.view_layer.objects.active = rig
+        #    bpy.ops.object.mode_set(mode='POSE')
         return {"FINISHED"}
 
 class BONE_OT_REVOFRAMECLEAR(bpy.types.Operator):
@@ -351,7 +351,7 @@ class BONE_OT_REVOFRAMEINSERT(bpy.types.Operator):
         return {"FINISHED"}
 
 def clearanim_obj(ob):
-    if ob.animation_data is not None:
+    if ob.animation_data is not None and ob.animation_data.action is not None:
         fc = ob.animation_data.action.fcurves
         for c in fc:
             if c.data_path.startswith("hide"):
