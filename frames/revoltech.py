@@ -219,7 +219,11 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
             bone.select = True
             armature.edit_bones[name]["REVO_ACTIVE"] = self.active
             bpy.ops.object.mode_set(mode='POSE')
-            posebone = bpy.data.objects[active_armname].pose.bones[name]
+            posebone = None
+            if active_armname in bpy.data.objects:
+                posebone = bpy.data.objects[active_armname].pose.bones[name]
+            else:
+                posebone = bpy.data.objects[active_armname.split('.')[0]].pose.bones[name]
             posebone["REVO_ACTIVE"] = self.active
         for name in legs:
             bpy.ops.object.mode_set(mode='EDIT')
@@ -232,7 +236,11 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
             bone.select = True
             armature.edit_bones[name]["REVO_ACTIVE"] = self.active
             bpy.ops.object.mode_set(mode='POSE')
-            posebone = bpy.data.objects[active_armname].pose.bones[name]
+            posebone = None
+            if active_armname in bpy.data.objects:
+                posebone = bpy.data.objects[active_armname].pose.bones[name]
+            else:
+                posebone = bpy.data.objects[active_armname.split('.')[0]].pose.bones[name]
             posebone["REVO_ACTIVE"] = self.active
         
 
