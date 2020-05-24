@@ -210,37 +210,37 @@ class BONE_OT_REVOACTIVE(bpy.types.Operator):
         legs = [b for b in names if any(a in b for a in front)]
         for name in arms:
             bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.armature.select_all(action='SELECT')
             bone = context.selected_editable_bones[:][0]
             armature = bone.id_data
             bpy.ops.armature.select_all(action='DESELECT')
-            bone = armature.edit_bones[active_bonename]
-            bone.select = False
             bone = armature.edit_bones[name]
             bone.select = True
             armature.edit_bones[name]["REVO_ACTIVE"] = self.active
             bpy.ops.object.mode_set(mode='POSE')
             posebone = None
-            if active_armname in bpy.data.objects:
+            if active_armname in bpy.data.objects.keys():
                 posebone = bpy.data.objects[active_armname].pose.bones[name]
             else:
-                posebone = bpy.data.objects[active_armname.split('.')[0]].pose.bones[name]
+                bpy.types.ArmatureBones.active = bpy.data.armatures[armature.name].bones[name]
+                posebone = context.active_pose_bone
             posebone["REVO_ACTIVE"] = self.active
         for name in legs:
             bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.armature.select_all(action='SELECT')
             bone = context.selected_editable_bones[:][0]
             armature = bone.id_data
             bpy.ops.armature.select_all(action='DESELECT')
-            bone = armature.edit_bones[active_bonename]
-            bone.select = False
             bone = armature.edit_bones[name]
             bone.select = True
             armature.edit_bones[name]["REVO_ACTIVE"] = self.active
             bpy.ops.object.mode_set(mode='POSE')
             posebone = None
-            if active_armname in bpy.data.objects:
+            if active_armname in bpy.data.objects.keys():
                 posebone = bpy.data.objects[active_armname].pose.bones[name]
             else:
-                posebone = bpy.data.objects[active_armname.split('.')[0]].pose.bones[name]
+                bpy.types.ArmatureBones.active = bpy.data.armatures[armature.name].bones[name]
+                posebone = context.active_pose_bone
             posebone["REVO_ACTIVE"] = self.active
         
 
