@@ -7,8 +7,11 @@ ffmpeg -r 12 -f image2 -s 1920x1080 -i %1_2sframes\out%%d.png -vcodec libx264 -c
 ffmpeg -i %1_2sframes\output24b.mp4 -i %1_2sframes\output_true24fps.mp4 -filter_complex "[0:v]scale=1280x720[bottom];[1:v]scale=1280x720[top];[bottom][top]overlay=enable='if(gt(n,0),not(mod(n\,13)),0)'" output2s.mp4
 
 mkdir %1_3sframes
-ffmpeg -i %1 -r 24 %1_3sframes\input_true24fps.mp4 
-ffmpeg -i %1 -r 16 %1_3sframes\output_true16fps.mp4 
+REM ffmpeg -i %1 -r 24 %1_3sframes\input_true24fps.mp4 
+REM ffmpeg -i %1 -r 16 %1_3sframes\output_true16fps.mp4 
+ffmpeg -i %1_2sframes\output_true24fps.mp4 -vf "select=not(mod(n\,3))" -vsync vfr %1_3sframes\tmp%%d.png
+ffmpeg -r 8 -f image2 -s 1920x1080 -i %1_3sframes\tmp%%d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p %1_3sframes\input_true8fps.mp4 
+ffmpeg -i %1_3sframes\input_true8fps.mp4 -r 16 %1_3sframes\output_true16fps.mp4 
 REM ffmpeg -i %1_3sframes\output_true16fps.mp4 -r 24 %1_3sframes\output_true24fps.mp4 
 ffmpeg -i %1_3sframes\output_true16fps.mp4 -vf negate %1_3sframes\outputN.mp4 
 ffmpeg -i %1_3sframes\output_true16fps.mp4 -i %1_3sframes\outputN.mp4 -filter_complex "[0:v]scale=1280x720[bottom];[1:v]scale=1280x720[top];[bottom][top]overlay=enable='if(gt(n,0),not(mod(n\,8)),0)'" %1_3sframes\output16b.mp4
@@ -22,8 +25,11 @@ ffmpeg -i %1_3sframes\test_true24fps.mp4 -i %1_3sframes\inputN.mp4 -filter_compl
 ffmpeg -i %1_3sframes\testp1.mp4 -vf negate output3s.mp4 
 
 mkdir %1_4sframes
-ffmpeg -i %1 -r 24 %1_4sframes\input_true24fps.mp4 
-ffmpeg -i %1 -r 12 %1_4sframes\output_true12fps.mp4 
+REM ffmpeg -i %1 -r 24 %1_4sframes\input_true24fps.mp4 
+REM ffmpeg -i %1 -r 12 %1_4sframes\output_true12fps.mp4 
+ffmpeg -i %1_2sframes\output_true24fps.mp4 -vf "select=not(mod(n\,4))" -vsync vfr %1_4sframes\tmp%%d.png
+ffmpeg -r 6 -f image2 -s 1920x1080 -i %1_4sframes\tmp%%d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p %1_4sframes\input_true6fps.mp4 
+ffmpeg -i %1_4sframes\input_true6fps.mp4 -r 12 %1_4sframes\output_true12fps.mp4 
 REM ffmpeg -i %1_4sframes\output_true12fps.mp4 -r 24 %1_4sframes\output_true24fps.mp4 
 ffmpeg -i %1_4sframes\output_true12fps.mp4 -vf negate %1_4sframes\outputN.mp4 
 ffmpeg -i %1_4sframes\output_true12fps.mp4 -i %1_4sframes\outputN.mp4 -filter_complex "[0:v]scale=1280x720[bottom];[1:v]scale=1280x720[top];[bottom][top]overlay=enable='if(gt(n,0),not(mod(n\,6)),0)'" %1_4sframes\output12b.mp4
@@ -37,8 +43,11 @@ ffmpeg -i %1_4sframes\test_true24fps.mp4 -i %1_4sframes\inputN.mp4 -filter_compl
 ffmpeg -i %1_4sframes\testp1.mp4 -vf negate output4s.mp4 
 
 mkdir %1_6sframes
-ffmpeg -i %1 -r 24 %1_6sframes\input_true24fps.mp4 
-ffmpeg -i %1 -r 8 %1_6sframes\output_true8fps.mp4 
+REM ffmpeg -i %1 -r 24 %1_6sframes\input_true24fps.mp4 
+REM ffmpeg -i %1 -r 8 %1_6sframes\output_true8fps.mp4 
+ffmpeg -i %1_2sframes\output_true24fps.mp4 -vf "select=not(mod(n\,6))" -vsync vfr %1_6sframes\tmp%%d.png
+ffmpeg -r 4 -f image2 -s 1920x1080 -i %1_6sframes\tmp%%d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p %1_6sframes\input_true4fps.mp4 
+ffmpeg -i %1_6sframes\input_true4fps.mp4 -r 8 %1_6sframes\output_true8fps.mp4 
 REM ffmpeg -i %1_6sframes\output_true8fps.mp4 -r 24 %1_6sframes\output_true24fps.mp4 
 ffmpeg -i %1_6sframes\output_true8fps.mp4 -vf negate %1_6sframes\outputN.mp4 
 ffmpeg -i %1_6sframes\output_true8fps.mp4 -i %1_6sframes\outputN.mp4 -filter_complex "[0:v]scale=1280x720[bottom];[1:v]scale=1280x720[top];[bottom][top]overlay=enable='if(gt(n,0),not(mod(n\,4)),0)'" %1_6sframes\output8b.mp4
